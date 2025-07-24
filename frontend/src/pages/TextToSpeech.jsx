@@ -59,25 +59,28 @@ const TextToSpeech = ({ onNavigate }) => {
   }, [audioUrl])
 
   const handleGenerateSpeech = async () => {
-    if (!text.trim()) {
-      alert("Please enter some text to generate speech")
-      return
-    }
+  if (!text.trim()) {
+    alert("Please enter some text to generate speech")
+    return
+  }
 
-    setIsGenerating(true)
-    try {
-      const res = await axios.post("http://localhost:8000/api/text-to-speech/", {
+  setIsGenerating(true)
+  try {
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}text-to-speech/`,
+      {
         text,
         lang: language,
-      })
-      setAudioUrl(res.data.audio_url)
-    } catch (err) {
-      console.error("Failed to generate speech:", err)
-      alert("Failed to generate speech")
-    } finally {
-      setIsGenerating(false)
-    }
+      }
+    )
+    setAudioUrl(res.data.audio_url)
+  } catch (err) {
+    console.error("Failed to generate speech:", err)
+    alert("Failed to generate speech")
+  } finally {
+    setIsGenerating(false)
   }
+}
 
   const togglePlayPause = () => {
     const audio = audioRef.current
