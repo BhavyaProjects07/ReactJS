@@ -56,6 +56,7 @@ const Chat = ({ onNavigate }) => {
           ? `${BASE_URL}generate-image/`
           : `${BASE_URL}chat/`;
         console.log("Fetch endpoint:", endpoint);
+        console.log("VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 
         const requestBody = isImageMode
           ? { prompt: inputMessage }
