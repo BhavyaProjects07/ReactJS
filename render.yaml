@@ -17,9 +17,3 @@ services:
           name: ai-saas-app-db # 👈 Replace with your actual Neon DB name
           property: connectionString
 
-  - type: web
-    name: react-frontend
-    env: static
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
