@@ -173,8 +173,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.files.base import ContentFile
-from google import genai
-from google.genai import types
+from google.generativeai import types
 from .models import GeneratedImage
 from .serializers import GeneratedImageSerializer
 
