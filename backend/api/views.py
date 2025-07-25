@@ -248,17 +248,18 @@ class ImageGenerateAPIView(APIView):
                     except Exception:
                         return Response({"error": "Invalid image file from Gemini"}, status=400)
 
-                    data_buffer = BytesIO(image_bytes)
                     file_extension = mimetypes.guess_extension(inline_data.mime_type) or ".png"
                     file_name = f"generated_image_{int(time.time())}_{file_index}{file_extension}"
+                    data_buffer = BytesIO(image_bytes)
+                    data_buffer.seek(0)  # RESET STREAM POSITION
 
-                    # ✅ Upload to Cloudinary
                     upload_result = cloudinary.uploader.upload(
                         data_buffer,
                         resource_type="image",
                         public_id=file_name,
                         folder="generated_images"
                     )
+
                     image_url = upload_result.get("secure_url")
                     break
 
