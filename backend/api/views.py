@@ -165,30 +165,33 @@ class ChatAPIView(APIView):
 
 
 
+from cloudinary.models import CloudinaryField
+
 import base64
 import mimetypes
+import os
 import time
-from io import BytesIO
-from PIL import Image
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.parsers import JSONParser
-
 from django.core.files.base import ContentFile
 from google import genai
 from google.genai import types
-
 from .models import GeneratedImage
 from .serializers import GeneratedImageSerializer
+from io import BytesIO
+from PIL import Image
+import base64
+import mimetypes
+import time
 
+
+
+# ✅ Import Cloudinary uploader
 import cloudinary.uploader
 from decouple import config
 
 class ImageGenerateAPIView(APIView):
-    parser_classes = [JSONParser]  # ✅ Correct way
-
     def post(self, request):
         prompt = request.data.get('prompt')
 
@@ -196,6 +199,9 @@ class ImageGenerateAPIView(APIView):
             return Response({"error": "Prompt is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            print("Debug - Received prompt:")
+            print(prompt)
+
             client = genai.Client(api_key=config("GOOGLE_API_KEY"))
 
             model = "gemini-2.0-flash-preview-image-generation"
@@ -231,38 +237,42 @@ class ImageGenerateAPIView(APIView):
 
                 if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
                     inline_data = part.inline_data
-                    image_bytes = base64.b64decode(inline_data.data)
 
+                    # Decode base64 and wrap in BytesIO
+                    image_bytes = base64.b64decode(inline_data.data)
+                    
+                    # (Optional) Validate image
                     try:
                         img = Image.open(BytesIO(image_bytes))
                         img.verify()
                     except Exception:
-                        return Response({"error": "Invalid image from Gemini"}, status=400)
+                        return Response({"error": "Invalid image file from Gemini"}, status=400)
 
                     data_buffer = BytesIO(image_bytes)
                     file_extension = mimetypes.guess_extension(inline_data.mime_type) or ".png"
                     file_name = f"generated_image_{int(time.time())}_{file_index}{file_extension}"
 
+                    # ✅ Upload to Cloudinary
                     upload_result = cloudinary.uploader.upload(
                         data_buffer,
                         resource_type="image",
                         public_id=file_name,
                         folder="generated_images"
                     )
-
                     image_url = upload_result.get("secure_url")
                     break
 
                 elif hasattr(part, "text"):
-                    print("Gemini Text Response:", part.text)
+                    print(part.text)
 
             if not image_url:
                 return Response({"error": "Image generation failed."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Save to DB
+            # ✅ Save Cloudinary image URL in DB
             generated_image = GeneratedImage.objects.create(
                 prompt=prompt,
-                file_name=image_url  # ✅ Change field name if needed
+                file_name=upload_result.get("secure_url")
+  # Assuming file_name is a URLField or ImageField with blank=True
             )
 
             serializer = GeneratedImageSerializer(generated_image)
@@ -272,6 +282,8 @@ class ImageGenerateAPIView(APIView):
             import traceback
             traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 
 from gtts import gTTS
