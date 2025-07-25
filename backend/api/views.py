@@ -179,6 +179,13 @@ from google import genai
 from google.genai import types
 from .models import GeneratedImage
 from .serializers import GeneratedImageSerializer
+from io import BytesIO
+from PIL import Image
+import base64
+import mimetypes
+import time
+
+
 
 # ✅ Import Cloudinary uploader
 import cloudinary.uploader
@@ -230,7 +237,18 @@ class ImageGenerateAPIView(APIView):
 
                 if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
                     inline_data = part.inline_data
-                    data_buffer = base64.b64decode(inline_data.data)
+
+                    # Decode base64 and wrap in BytesIO
+                    image_bytes = base64.b64decode(inline_data.data)
+                    
+                    # (Optional) Validate image
+                    try:
+                        img = Image.open(BytesIO(image_bytes))
+                        img.verify()
+                    except Exception:
+                        return Response({"error": "Invalid image file from Gemini"}, status=400)
+
+                    data_buffer = BytesIO(image_bytes)
                     file_extension = mimetypes.guess_extension(inline_data.mime_type) or ".png"
                     file_name = f"generated_image_{int(time.time())}_{file_index}{file_extension}"
 
