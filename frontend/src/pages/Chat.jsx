@@ -55,19 +55,19 @@ const Chat = ({ onNavigate }) => {
     const endpoint = isImageMode
       ? `${BASE_URL}api/generate-image/`
       : `${BASE_URL}api/chat/`;
-    console.log("Fetch endpoint:", endpoint);
-    console.log("VITE_API_BASE_URL:", BASE_URL);
-
-    const requestBody = isImageMode
+      console.log("VITE_API_BASE_URL:", BASE_URL);
+      
+      const requestBody = isImageMode
       ? { prompt: inputMessage }
       : { message: inputMessage };
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody),
-    });
-
+      
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      
+    console.log("Fetch endpoint ye hai :", endpoint);
     const data = await response.json();
 
     const botResponse = {
