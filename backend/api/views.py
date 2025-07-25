@@ -165,6 +165,7 @@ class ChatAPIView(APIView):
 
 
 
+from cloudinary.models import CloudinaryField
 
 import base64
 import mimetypes
@@ -179,6 +180,10 @@ from google.genai import types
 from .models import GeneratedImage
 from .serializers import GeneratedImageSerializer
 
+# ✅ Import Cloudinary uploader
+import cloudinary.uploader
+from decouple import config
+
 class ImageGenerateAPIView(APIView):
     def post(self, request):
         prompt = request.data.get('prompt')
@@ -190,10 +195,7 @@ class ImageGenerateAPIView(APIView):
             print("Debug - Received prompt:")
             print(prompt)
 
-            client = genai.Client(
-                api_key=config("GOOGLE_API_KEY")
-            )
-
+            client = genai.Client(api_key=config("GOOGLE_API_KEY"))
 
             model = "gemini-2.0-flash-preview-image-generation"
             contents = [
@@ -210,7 +212,7 @@ class ImageGenerateAPIView(APIView):
 
             file_index = 0
             file_name = None
-            image_content = None
+            image_url = None
 
             for chunk in client.models.generate_content_stream(
                 model=model,
@@ -231,19 +233,27 @@ class ImageGenerateAPIView(APIView):
                     data_buffer = base64.b64decode(inline_data.data)
                     file_extension = mimetypes.guess_extension(inline_data.mime_type) or ".png"
                     file_name = f"generated_image_{int(time.time())}_{file_index}{file_extension}"
-                    image_content = ContentFile(data_buffer, name=file_name)
+
+                    # ✅ Upload to Cloudinary
+                    upload_result = cloudinary.uploader.upload(
+                        data_buffer,
+                        resource_type="image",
+                        public_id=file_name,
+                        folder="generated_images"
+                    )
+                    image_url = upload_result.get("secure_url")
                     break
 
                 elif hasattr(part, "text"):
                     print(part.text)
 
-            if not image_content:
+            if not image_url:
                 return Response({"error": "Image generation failed."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # ✅ Save in DB using ImageField
+            # ✅ Save Cloudinary image URL in DB
             generated_image = GeneratedImage.objects.create(
                 prompt=prompt,
-                file_name=image_content
+                file_name=image_url  # Assuming file_name is a URLField or ImageField with blank=True
             )
 
             serializer = GeneratedImageSerializer(generated_image)
@@ -253,7 +263,6 @@ class ImageGenerateAPIView(APIView):
             import traceback
             traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 
