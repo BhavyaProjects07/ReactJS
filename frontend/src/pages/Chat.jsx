@@ -35,64 +35,65 @@ const Chat = ({ onNavigate }) => {
   
 
     const handleSendMessage = async (e) => {
-      e.preventDefault();
-      if (!inputMessage.trim()) return;
+  e.preventDefault();
+  if (!inputMessage.trim()) return;
 
-      const userMessage = {
-        id: Date.now(),
-        type: "user",
-        content: inputMessage,
-        timestamp: new Date(),
-      };
+  const userMessage = {
+    id: Date.now(),
+    type: "user",
+    content: inputMessage,
+    timestamp: new Date(),
+  };
 
-      setMessages((prev) => [...prev, userMessage]);
-      setInputMessage("");
-      setIsTyping(true);
+  setMessages((prev) => [...prev, userMessage]);
+  setInputMessage("");
+  setIsTyping(true);
 
-      try {
-        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        
-        const endpoint = isImageMode
-          ? `${BASE_URL}api/generate-image/`
-          : `${BASE_URL}api/chat/`;
-        console.log("Fetch endpoint:", endpoint);
-        console.log("VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
+  try {
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-        const requestBody = isImageMode
-          ? { prompt: inputMessage }
-          : { message: inputMessage };
+    const endpoint = isImageMode
+      ? `${BASE_URL}api/generate-image/`
+      : `${BASE_URL}api/chat/`;
+    console.log("Fetch endpoint:", endpoint);
+    console.log("VITE_API_BASE_URL:", BASE_URL);
 
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody),
-        });
+    const requestBody = isImageMode
+      ? { prompt: inputMessage }
+      : { message: inputMessage };
 
-        const data = await response.json();
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    });
 
-        const botResponse = {
-          id: Date.now() + 1,
-          type: "bot",
-          content: isImageMode
-            ? `<img src="${BASE_URL}${data.file_name}" alt="Generated Image" class='rounded-xl' />`
-            : data.bot_response,
-          timestamp: new Date(),
-        };
+    const data = await response.json();
 
-        setMessages((prev) => [...prev, botResponse]);
-      } catch (error) {
-        console.error("Error fetching AI response:", error);
-        const botResponse = {
-          id: Date.now() + 1,
-          type: "bot",
-          content: "Sorry, I couldn't process your request. Please try again.",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, botResponse]);
-      } finally {
-        setIsTyping(false);
-      }
+    const botResponse = {
+      id: Date.now() + 1,
+      type: "bot",
+      content: isImageMode
+        ? `<img src="${data.file_name}" alt="Generated Image" class='rounded-xl' />`
+        : data.bot_response,
+      timestamp: new Date(),
     };
+
+    setMessages((prev) => [...prev, botResponse]);
+  } catch (error) {
+    console.error("Error fetching AI response:", error);
+    const botResponse = {
+      id: Date.now() + 1,
+      type: "bot",
+      content: "Sorry, I couldn't process your request. Please try again.",
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, botResponse]);
+  } finally {
+    setIsTyping(false);
+  }
+};
+
 
 
   const formatTime = (timestamp) => timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
