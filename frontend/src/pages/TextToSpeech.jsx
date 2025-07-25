@@ -67,7 +67,7 @@ const TextToSpeech = ({ onNavigate }) => {
   setIsGenerating(true)
   try {
     const res = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}text-to-speech/`,
+      `${import.meta.env.VITE_API_BASE_URL}api/text-to-speech/`,
       {
         text,
         lang: language,

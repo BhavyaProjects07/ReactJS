@@ -53,8 +53,8 @@ const Chat = ({ onNavigate }) => {
         const BASE_URL = import.meta.env.VITE_API_BASE_URL;
         
         const endpoint = isImageMode
-          ? `${BASE_URL}generate-image/`
-          : `${BASE_URL}chat/`;
+          ? `${BASE_URL}api/generate-image/`
+          : `${BASE_URL}api/chat/`;
         console.log("Fetch endpoint:", endpoint);
         console.log("VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 
