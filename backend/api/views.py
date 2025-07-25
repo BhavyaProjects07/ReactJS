@@ -253,7 +253,8 @@ class ImageGenerateAPIView(APIView):
             # ✅ Save Cloudinary image URL in DB
             generated_image = GeneratedImage.objects.create(
                 prompt=prompt,
-                file_name=image_url  # Assuming file_name is a URLField or ImageField with blank=True
+                file_name=upload_result.get("secure_url")
+  # Assuming file_name is a URLField or ImageField with blank=True
             )
 
             serializer = GeneratedImageSerializer(generated_image)
