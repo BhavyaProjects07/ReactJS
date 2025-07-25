@@ -75,10 +75,13 @@ const Chat = ({ onNavigate }) => {
       type: "bot",
       content: isImageMode
         ? `<img src="${data.file_name}" alt="Generated Image" class='rounded-xl' />`
+          
         : data.bot_response,
       timestamp: new Date(),
-    };
 
+    };
+    console.log("The image url :", data.file_name);
+    
     setMessages((prev) => [...prev, botResponse]);
   } catch (error) {
     console.error("Error fetching AI response:", error);
