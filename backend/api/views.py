@@ -165,64 +165,58 @@ class ChatAPIView(APIView):
 
 
 
+
 import base64
 import mimetypes
+import os
 import time
-import traceback
-
-from django.core.files.base import ContentFile
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
-from decouple import config  # ✅ Securely handle environment variables
-
-# ✅ Google Generative AI Imports
-try:
-    from google import genai
-    from google.generativeai.types import Content, Part, GenerateContentConfig
-except ImportError as e:
-    raise ImportError(
-        "Google Generative AI module not installed. Run `pip install google-generativeai`"
-    ) from e
-
+from django.core.files.base import ContentFile
+from google import genai
+from google.genai import types
 from .models import GeneratedImage
 from .serializers import GeneratedImageSerializer
 
-
 class ImageGenerateAPIView(APIView):
     def post(self, request):
-        prompt = request.data.get("prompt")
+        prompt = request.data.get('prompt')
+
         if not prompt:
             return Response({"error": "Prompt is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            print("🔍 Prompt received:", prompt)
+            print("Debug - Received prompt:")
+            print(prompt)
 
-            # ✅ Initialize Gemini Image Model
-            model = genai.GenerativeModel(
-                model_name="gemini-2.0-flash-preview-image-generation",
+            client = genai.Client(
                 api_key=config("GOOGLE_API_KEY")
             )
 
+
+            model = "gemini-2.0-flash-preview-image-generation"
             contents = [
-                Content(
+                types.Content(
                     role="user",
-                    parts=[Part.from_text(prompt)],
-                )
+                    parts=[types.Part.from_text(text=prompt)],
+                ),
             ]
 
-            config_obj = GenerateContentConfig(
+            generate_content_config = types.GenerateContentConfig(
                 response_modalities=["IMAGE", "TEXT"],
-                response_mime_type="text/plain"
+                response_mime_type="text/plain",
             )
 
-            image_file = None
-            file_name = None
             file_index = 0
+            file_name = None
+            image_content = None
 
-            # ✅ Generate and Stream the Image
-            for chunk in model.generate_content_stream(contents=contents, config=config_obj):
+            for chunk in client.models.generate_content_stream(
+                model=model,
+                contents=contents,
+                config=generate_content_config,
+            ):
                 if (
                     not chunk.candidates
                     or not chunk.candidates[0].content
@@ -234,30 +228,34 @@ class ImageGenerateAPIView(APIView):
 
                 if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
                     inline_data = part.inline_data
-                    decoded_data = base64.b64decode(inline_data.data)
-                    extension = mimetypes.guess_extension(inline_data.mime_type) or ".png"
-                    file_name = f"generated_image_{int(time.time())}_{file_index}{extension}"
-                    image_file = ContentFile(decoded_data, name=file_name)
+                    data_buffer = base64.b64decode(inline_data.data)
+                    file_extension = mimetypes.guess_extension(inline_data.mime_type) or ".png"
+                    file_name = f"generated_image_{int(time.time())}_{file_index}{file_extension}"
+                    image_content = ContentFile(data_buffer, name=file_name)
                     break
 
                 elif hasattr(part, "text"):
-                    print("💬 Text Output from Gemini:", part.text)
+                    print(part.text)
 
-            if not image_file:
+            if not image_content:
                 return Response({"error": "Image generation failed."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # ✅ Save to DB
+            # ✅ Save in DB using ImageField
             generated_image = GeneratedImage.objects.create(
                 prompt=prompt,
-                file_name=image_file
+                file_name=image_content
             )
 
             serializer = GeneratedImageSerializer(generated_image)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
+            import traceback
             traceback.print_exc()
-            return Response({"error": f"Internal Server Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
 
 
 from gtts import gTTS
