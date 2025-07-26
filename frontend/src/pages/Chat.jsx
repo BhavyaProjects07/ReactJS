@@ -17,8 +17,11 @@ const Chat = ({ onNavigate }) => {
   const [isTyping, setIsTyping] = useState(false)
   const [isImageMode, setIsImageMode] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  const chatContainerRef = useRef(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -27,6 +30,59 @@ const Chat = ({ onNavigate }) => {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Handle mobile keyboard visibility
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.visualViewport) {
+        const viewportHeight = window.visualViewport.height
+        const windowHeight = window.innerHeight
+        const keyboardHeight = windowHeight - viewportHeight
+
+        setKeyboardHeight(keyboardHeight)
+        setIsKeyboardOpen(keyboardHeight > 0)
+
+        // Scroll to bottom when keyboard opens
+        if (keyboardHeight > 0) {
+          setTimeout(() => scrollToBottom(), 100)
+        }
+      }
+    }
+
+    // Handle focus events
+    const handleFocus = () => {
+      setTimeout(() => {
+        scrollToBottom()
+        setIsKeyboardOpen(true)
+      }, 300)
+    }
+
+    const handleBlur = () => {
+      setTimeout(() => {
+        setIsKeyboardOpen(false)
+        setKeyboardHeight(0)
+      }, 100)
+    }
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleResize)
+    }
+
+    if (inputRef.current) {
+      inputRef.current.addEventListener("focus", handleFocus)
+      inputRef.current.addEventListener("blur", handleBlur)
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleResize)
+      }
+      if (inputRef.current) {
+        inputRef.current.removeEventListener("focus", handleFocus)
+        inputRef.current.removeEventListener("blur", handleBlur)
+      }
+    }
+  }, [])
 
   const handleSendMessage = async (e) => {
     e.preventDefault()
@@ -96,9 +152,15 @@ const Chat = ({ onNavigate }) => {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      <div className="relative z-10 flex flex-col h-screen">
+      <div
+        className="relative z-10 flex flex-col"
+        style={{
+          height: isKeyboardOpen && window.visualViewport ? `${window.visualViewport.height}px` : "100vh",
+          maxHeight: isKeyboardOpen && window.visualViewport ? `${window.visualViewport.height}px` : "100vh",
+        }}
+      >
         {/* Header - Responsive */}
-        <header className="border-b border-gray-800 bg-black/80 backdrop-blur-md">
+        <header className="border-b border-gray-800 bg-black/80 backdrop-blur-md flex-shrink-0">
           <div className="w-full px-4 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center justify-between">
               {/* Left Section */}
@@ -160,8 +222,15 @@ const Chat = ({ onNavigate }) => {
           </div>
         </header>
 
-        {/* Messages Area - Responsive */}
-        <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Messages Area - Responsive with keyboard handling */}
+        <div
+          ref={chatContainerRef}
+          className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6"
+          style={{
+            paddingBottom: isKeyboardOpen ? "20px" : undefined,
+            minHeight: 0, // Important for flex-1 to work properly
+          }}
+        >
           <div className="w-full max-w-4xl mx-auto">
             {messages.map((message) => (
               <div
@@ -252,8 +321,17 @@ const Chat = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Input Area - Responsive */}
-        <div className="border-t border-gray-800 bg-black/80 backdrop-blur-md">
+        {/* Input Area - Fixed at bottom with keyboard handling */}
+        <div
+          className="border-t border-gray-800 bg-black/90 backdrop-blur-md flex-shrink-0"
+          style={{
+            position: isKeyboardOpen ? "fixed" : "relative",
+            bottom: isKeyboardOpen ? 0 : "auto",
+            left: isKeyboardOpen ? 0 : "auto",
+            right: isKeyboardOpen ? 0 : "auto",
+            zIndex: isKeyboardOpen ? 1000 : "auto",
+          }}
+        >
           <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
             {/* Image Mode Toggle - Above Input */}
             <div className="flex items-center justify-between mb-3">
@@ -270,7 +348,7 @@ const Chat = ({ onNavigate }) => {
                   {isImageMode ? "IMG ON" : "IMG OFF"}
                 </button>
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 hidden sm:block">
                 {isImageMode ? "Generate images from text" : "Chat with AI assistant"}
               </div>
             </div>
@@ -311,8 +389,8 @@ const Chat = ({ onNavigate }) => {
               </div>
             </form>
 
-            {/* Quick Actions - Responsive */}
-            <div className="flex flex-wrap gap-1 sm:gap-2 mt-3 sm:mt-4">
+            {/* Quick Actions - Responsive - Hide on mobile when keyboard is open */}
+            <div className={`flex flex-wrap gap-1 sm:gap-2 mt-3 sm:mt-4 ${isKeyboardOpen ? "hidden sm:flex" : "flex"}`}>
               {isImageMode
                 ? ["Realistic portrait", "Abstract art", "Landscape scene", "Digital artwork"].map(
                     (suggestion, index) => (
