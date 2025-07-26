@@ -79,7 +79,9 @@ const TextToSpeech = ({ onNavigate }) => {
     alert("Failed to generate speech")
   } finally {
     setIsGenerating(false)
-  }
+    }
+    console.log("🎧 Final Cloudinary Audio URL:", res.data.audio_url);
+
 }
 
   const togglePlayPause = () => {
@@ -108,9 +110,7 @@ const TextToSpeech = ({ onNavigate }) => {
     { code: "fr", name: "French", flag: "🇫🇷" },
     { code: "de", name: "German", flag: "🇩🇪" },
   ]
-
-  console.log("🎧 Final Cloudinary Audio URL:", res.data.audio_url);
-
+  
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -327,7 +327,7 @@ const TextToSpeech = ({ onNavigate }) => {
                   <audio ref={audioRef} src={audioUrl} className="hidden" />
                 </div>
               )}
-
+                
               {/* Features */}
               <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 animate-fade-in-up">
                 <div className="flex items-center space-x-2 mb-4">
@@ -365,6 +365,7 @@ const TextToSpeech = ({ onNavigate }) => {
         <div className="w-4 h-4 bg-purple-400/50 rounded-full animate-pulse delay-700"></div>
       </div>
     </div>
+    
   )
 }
 
