@@ -253,7 +253,8 @@ class GenerateImageAPIView(APIView):
                     os.remove(file_name)
                     print("☁️ Uploaded to Cloudinary:", response["secure_url"])
 
-                    return Response({"image_url": response["secure_url"]}, status=200)
+                    return Response({"file_name": response["secure_url"]}, status=200)
+
                 else:
                     print("❌ No inline image data in parts.")
 
