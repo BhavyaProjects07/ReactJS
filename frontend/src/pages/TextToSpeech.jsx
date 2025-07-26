@@ -311,7 +311,7 @@ const TextToSpeech = ({ onNavigate }) => {
 
                     {/* Download Button */}
                     <a
-                      href={`http://localhost:8000${audioUrl}`}
+                      href={`${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "")}${audioUrl}`}
                       download
                       className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-300 hover:text-white hover:border-gray-600 hover:bg-gray-700/50 transition-all duration-200"
                     >
@@ -323,7 +323,8 @@ const TextToSpeech = ({ onNavigate }) => {
                   {/* Hidden Audio Element */}
                   <audio
                     ref={audioRef}
-                    src={`http://localhost:8000${audioUrl}`}
+                    src={`${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "")}${audioUrl}`}
+
                     className="hidden"
                   />
                 </div>
