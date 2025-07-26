@@ -303,7 +303,7 @@ const Chat = ({ onNavigate }) => {
                       : "bg-gray-800/50 border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600"
                   }`}
                 >
-                  {isImageMode ? "IMG ON" : "IMG OFF"}
+                  {isImageMode ? "GENERATE IMG ON" : "GENERATE IMG OFF"}
                 </button>
               </div>
               <div className="text-xs text-gray-500 hidden sm:block">
