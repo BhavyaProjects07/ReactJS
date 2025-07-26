@@ -250,7 +250,6 @@ const Chat = ({ onNavigate }) => {
             )}
             <div ref={messagesEndRef} />
           </div>
-        </div>
         <div className="absolute right-12 sm:right-16 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
           <span
             className="text-xs sm:text-sm text-purple-400 cursor-pointer hover:text-purple-300 transition-colors duration-200 whitespace-nowrap"
@@ -261,6 +260,7 @@ const Chat = ({ onNavigate }) => {
             </span>
             <span className="sm:hidden">{isImageMode ? "IMG ON" : "IMG OFF"}</span>
           </span>
+        </div>
         </div>
         
         {/* Input Area - Responsive */}
