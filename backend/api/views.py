@@ -299,9 +299,13 @@ class TextToSpeechView(APIView):
         try:
             response = cloudinary.uploader.upload(
                 filepath,
-                resource_type="video",  # For mp3 audio
-                folder="darkai/tts/"
+                resource_type="video",   # Required for mp3 in Cloudinary
+                folder="darkai/tts/",
+                public_id=filename.split(".")[0],  # Use clean name
+                format="mp3",                      # 🔑 This ensures proper MIME type
+                overwrite=True
             )
+
             cloud_url = response["secure_url"]
         except Exception as e:
             return Response({"error": f"Cloudinary upload failed: {str(e)}"}, status=500)
