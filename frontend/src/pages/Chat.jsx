@@ -283,14 +283,12 @@ const Chat = ({ onNavigate }) => {
                       <span className="hidden sm:inline">
                         {isImageMode ? "Generate Image On" : "Generate Image Off"}
                       </span>
-                      <span className="sm:hidden">{isImageMode ? "IMG ON" : "IMG OFF"}</span>
+                      <span className="sm:hidden">{isImageMode ? "GENERATE IMG ON" : "GENERATE IMG OFF"}</span>
                     </span>
                   </div>
 
                   {/* Sparkles Icon */}
-                  <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
-                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 animate-pulse" />
-                  </div>
+                  
                 </div>
 
                 {/* Send Button */}
