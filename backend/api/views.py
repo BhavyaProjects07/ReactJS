@@ -264,7 +264,6 @@ class GenerateImageAPIView(APIView):
 
 
 
-
 from gtts import gTTS
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -272,31 +271,41 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from gtts.lang import tts_langs
 import os, uuid
+import cloudinary.uploader
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TextToSpeechView(APIView):
     def post(self, request):
         text = request.data.get("text")
-        lang = request.data.get("lang", "es")  # default to English
+        lang = request.data.get("lang", "en")  # default to English
 
         if not text:
             return Response({"error": "No text provided"}, status=400)
 
-        # ✅ Validate lang code
+        # ✅ Validate language code
         supported_langs = tts_langs()
         if lang not in supported_langs:
             return Response({"error": f"Language '{lang}' not supported."}, status=400)
 
-        # ✅ Ensure the output directory exists
-        folder_path = os.path.join("media", "tts")
-        os.makedirs(folder_path, exist_ok=True)
-
-        # ✅ Generate filename and full path
+        # ✅ Generate speech and save locally
         filename = f"{uuid.uuid4()}.mp3"
-        filepath = os.path.join(folder_path, filename)
+        filepath = os.path.join("temp", filename)
+        os.makedirs("temp", exist_ok=True)
 
-        # ✅ Generate and save the audio
         tts = gTTS(text=text, lang=lang)
         tts.save(filepath)
 
-        return Response({"audio_url": f"/media/tts/{filename}"})
+        # ✅ Upload to Cloudinary
+        try:
+            response = cloudinary.uploader.upload(
+                filepath,
+                resource_type="video",  # For mp3 audio
+                folder="darkai/tts/"
+            )
+            cloud_url = response["secure_url"]
+        except Exception as e:
+            return Response({"error": f"Cloudinary upload failed: {str(e)}"}, status=500)
+        finally:
+            os.remove(filepath)
+
+        return Response({"audio_url": cloud_url})
