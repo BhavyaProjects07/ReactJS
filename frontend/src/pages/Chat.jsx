@@ -251,7 +251,18 @@ const Chat = ({ onNavigate }) => {
             <div ref={messagesEndRef} />
           </div>
         </div>
-
+        <div className="absolute right-12 sm:right-16 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+          <span
+            className="text-xs sm:text-sm text-purple-400 cursor-pointer hover:text-purple-300 transition-colors duration-200 whitespace-nowrap"
+            onClick={() => setIsImageMode(!isImageMode)}
+          >
+            <span className="hidden sm:inline">
+              {isImageMode ? "Generate Image On" : "Generate Image Off"}
+            </span>
+            <span className="sm:hidden">{isImageMode ? "IMG ON" : "IMG OFF"}</span>
+          </span>
+        </div>
+        
         {/* Input Area - Responsive */}
         <div className="border-t border-gray-800 bg-black/80 backdrop-blur-md">
           <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
@@ -275,17 +286,7 @@ const Chat = ({ onNavigate }) => {
                   />
 
                   {/* Image Mode Toggle - Responsive */}
-                  <div className="absolute right-12 sm:right-16 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                    <span
-                      className="text-xs sm:text-sm text-purple-400 cursor-pointer hover:text-purple-300 transition-colors duration-200 whitespace-nowrap"
-                      onClick={() => setIsImageMode(!isImageMode)}
-                    >
-                      <span className="hidden sm:inline">
-                        {isImageMode ? "Generate Image On" : "Generate Image Off"}
-                      </span>
-                      <span className="sm:hidden">{isImageMode ? "IMG ON" : "IMG OFF"}</span>
-                    </span>
-                  </div>
+                  
 
                   {/* Sparkles Icon */}
                   <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
