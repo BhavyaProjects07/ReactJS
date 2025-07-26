@@ -168,127 +168,99 @@ class ChatAPIView(APIView):
 
 
 
-import logging
+
+# views.py
+
+import os
+import mimetypes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from google import genai
 from google.genai import types
-from .models import GeneratedImage
-from .serializers import GeneratedImageSerializer
-from PIL import Image
-import base64
-import mimetypes
-import time
-import os
-from io import BytesIO
+import cloudinary
 import cloudinary.uploader
-from decouple import config
 
-# 🔧 Configure logger
-logger = logging.getLogger(__name__)
+# Cloudinary configuration
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    secure=True
+)
 
-class ImageGenerateAPIView(APIView):
+def upload_to_cloudinary(file_name, data):
+    with open(file_name, "wb") as f:
+        f.write(data)
+    response = cloudinary.uploader.upload(file_name, folder="darkai/generated/")
+    os.remove(file_name)
+    return response['secure_url']
+
+class GenerateImageAPIView(APIView):
     def post(self, request):
-        prompt = request.data.get('prompt')
-
-        logger.debug("🔍 API called")
-        logger.debug("📝 Prompt received: %s", prompt)
-
+        prompt = request.data.get("prompt")
+        print(f"Received prompt: {prompt}")
         if not prompt:
-            logger.warning("❌ Prompt missing from request")
             return Response({"error": "Prompt is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # 🔐 Log environment variable presence
-            logger.debug("🔐 Env - CLOUDINARY_CLOUD_NAME: %s", os.getenv("CLOUDINARY_CLOUD_NAME"))
-            logger.debug("🔐 Env - CLOUDINARY_API_KEY: %s", os.getenv("CLOUDINARY_API_KEY"))
-            logger.debug("🔐 Env - GOOGLE_API_KEY: %s", config("GOOGLE_API_KEY", default="Not Found"))
-
-            client = genai.Client(api_key=config("GOOGLE_API_KEY"))
+            client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
             model = "gemini-2.0-flash-preview-image-generation"
-            contents = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
-            generate_content_config = types.GenerateContentConfig(
+
+            contents = [
+                types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=prompt)],
+                ),
+            ]
+
+            config = types.GenerateContentConfig(
+                temperature=1,
                 response_modalities=["IMAGE", "TEXT"],
-                response_mime_type="text/plain"
             )
 
             file_index = 0
-            image_url = None
-            file_name = None
-
-            logger.debug("⚙️ Starting Gemini image generation...")
-
             for chunk in client.models.generate_content_stream(
                 model=model,
                 contents=contents,
-                config=generate_content_config,
+                config=config,
             ):
-                if (
-                    not chunk.candidates
-                    or not chunk.candidates[0].content
-                    or not chunk.candidates[0].content.parts
-                ):
-                    logger.warning("⚠️ Empty chunk from Gemini, skipping")
+                print("📥 Received chunk from Gemini")
+
+                candidate = chunk.candidates[0]
+                if not candidate or not candidate.content or not candidate.content.parts:
+                    print("⚠️ No candidate content/parts found.")
                     continue
 
-                part = chunk.candidates[0].content.parts[0]
+                parts = candidate.content.parts
+                print(f"✅ Parts received: {parts}")
 
-                if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
-                    inline_data = part.inline_data
-                    logger.debug("📥 Received inline image data")
+                inline_data = parts[0].inline_data if parts[0] else None
 
-                    try:
-                        image_bytes = base64.b64decode(inline_data.data)
-                        img = Image.open(BytesIO(image_bytes))
-                        img.verify()
-                        logger.debug("✅ Image verified")
-                    except Exception as e:
-                        logger.error("❌ Invalid image: %s", e)
-                        return Response({"error": "Invalid image file from Gemini"}, status=400)
+                if inline_data and inline_data.data:
+                    print("🖼️ Inline image data found. Saving...")
 
-                    file_extension = mimetypes.guess_extension(inline_data.mime_type) or ".png"
-                    file_name = f"generated_image_{int(time.time())}_{file_index}{file_extension}"
-                    data_buffer = BytesIO(image_bytes)
-                    data_buffer.seek(0)
+                    file_extension = mimetypes.guess_extension(inline_data.mime_type)
+                    file_name = f"generated_image_{file_index}{file_extension}"
+                    file_index += 1
 
-                    logger.debug("🚀 Uploading to Cloudinary with filename: %s", file_name)
+                    with open(file_name, "wb") as f:
+                        f.write(inline_data.data)
 
-                    try:
-                        upload_result = cloudinary.uploader.upload(
-                            data_buffer,
-                            resource_type="image",
-                            public_id=file_name,
-                            folder="generated_images"
-                        )
-                        image_url = upload_result.get("secure_url")
-                        logger.debug("✅ Cloudinary Upload Successful: %s", image_url)
-                    except Exception as e:
-                        logger.error("❌ Cloudinary Upload Failed: %s", e)
-                        return Response({"error": "Cloudinary upload failed"}, status=500)
+                    print("✅ Image saved locally.")
 
-                    break
+                    response = cloudinary.uploader.upload(file_name, folder="darkai/generated/")
+                    os.remove(file_name)
+                    print("☁️ Uploaded to Cloudinary:", response["secure_url"])
 
-                elif hasattr(part, "text"):
-                    logger.info("💬 Gemini Text Response: %s", part.text)
+                    return Response({"image_url": response["secure_url"]}, status=200)
+                else:
+                    print("❌ No inline image data in parts.")
 
-            if not image_url:
-                logger.error("❌ Image generation failed — no valid image_url")
-                return Response({"error": "Image generation failed."}, status=status.HTTP_400_BAD_REQUEST)
-
-            generated_image = GeneratedImage.objects.create(
-                prompt=prompt,
-                file_name=image_url
-            )
-            logger.debug("🗃️ Image saved to DB: %s", generated_image.file_name)
-
-            serializer = GeneratedImageSerializer(generated_image)
-            logger.debug("📤 Returning response")
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            logger.exception("🔥 Exception caught during image generation")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 
