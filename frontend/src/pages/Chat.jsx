@@ -17,11 +17,12 @@ const Chat = ({ onNavigate }) => {
   const [isTyping, setIsTyping] = useState(false)
   const [isImageMode, setIsImageMode] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
-  const [keyboardHeight, setKeyboardHeight] = useState(0)
+  const [viewportHeight, setViewportHeight] = useState(0)
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const chatContainerRef = useRef(null)
+  const initialViewportHeight = useRef(0)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -31,41 +32,61 @@ const Chat = ({ onNavigate }) => {
     scrollToBottom()
   }, [messages])
 
-  // Handle mobile keyboard visibility
+  // Comprehensive mobile keyboard handling
   useEffect(() => {
-    const handleResize = () => {
-      if (window.visualViewport) {
-        const viewportHeight = window.visualViewport.height
-        const windowHeight = window.innerHeight
-        const keyboardHeight = windowHeight - viewportHeight
+    // Store initial viewport height
+    initialViewportHeight.current = window.innerHeight
 
-        setKeyboardHeight(keyboardHeight)
-        setIsKeyboardOpen(keyboardHeight > 0)
+    const updateViewportHeight = () => {
+      const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight
+      const heightDifference = initialViewportHeight.current - currentHeight
 
-        // Scroll to bottom when keyboard opens
-        if (keyboardHeight > 0) {
-          setTimeout(() => scrollToBottom(), 100)
-        }
+      setViewportHeight(currentHeight)
+      setIsKeyboardOpen(heightDifference > 150) // Keyboard is open if height difference > 150px
+
+      // Force scroll to bottom when keyboard opens
+      if (heightDifference > 150) {
+        setTimeout(() => {
+          scrollToBottom()
+          // Also scroll the input into view
+          if (inputRef.current) {
+            inputRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" })
+          }
+        }, 100)
       }
     }
 
-    // Handle focus events
+    // Initial setup
+    updateViewportHeight()
+
+    // Multiple event listeners for better compatibility
+    const handleResize = () => {
+      updateViewportHeight()
+    }
+
+    const handleVisualViewportChange = () => {
+      updateViewportHeight()
+    }
+
     const handleFocus = () => {
       setTimeout(() => {
-        scrollToBottom()
+        updateViewportHeight()
         setIsKeyboardOpen(true)
+        scrollToBottom()
       }, 300)
     }
 
     const handleBlur = () => {
       setTimeout(() => {
-        setIsKeyboardOpen(false)
-        setKeyboardHeight(0)
-      }, 100)
+        updateViewportHeight()
+      }, 300)
     }
 
+    // Add event listeners
+    window.addEventListener("resize", handleResize)
+
     if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", handleResize)
+      window.visualViewport.addEventListener("resize", handleVisualViewportChange)
     }
 
     if (inputRef.current) {
@@ -73,10 +94,14 @@ const Chat = ({ onNavigate }) => {
       inputRef.current.addEventListener("blur", handleBlur)
     }
 
+    // Cleanup
     return () => {
+      window.removeEventListener("resize", handleResize)
+
       if (window.visualViewport) {
-        window.visualViewport.removeEventListener("resize", handleResize)
+        window.visualViewport.removeEventListener("resize", handleVisualViewportChange)
       }
+
       if (inputRef.current) {
         inputRef.current.removeEventListener("focus", handleFocus)
         inputRef.current.removeEventListener("blur", handleBlur)
@@ -143,8 +168,20 @@ const Chat = ({ onNavigate }) => {
   const formatTime = (timestamp) => timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
   const copyMessage = (content) => navigator.clipboard.writeText(content)
 
+  // Calculate dynamic heights
+  const containerHeight = viewportHeight > 0 ? `${viewportHeight}px` : "100vh"
+  const headerHeight = 80 // Approximate header height
+  const inputAreaHeight = 140 // Approximate input area height
+  const messagesHeight =
+    viewportHeight > 0
+      ? `${viewportHeight - headerHeight - inputAreaHeight}px`
+      : `calc(100vh - ${headerHeight + inputAreaHeight}px)`
+
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div
+      className="bg-black text-white"
+      style={{ height: containerHeight, maxHeight: containerHeight, overflow: "hidden" }}
+    >
       {/* Background Effects */}
       <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black"></div>
@@ -152,14 +189,8 @@ const Chat = ({ onNavigate }) => {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      <div
-        className="relative z-10 flex flex-col"
-        style={{
-          height: isKeyboardOpen && window.visualViewport ? `${window.visualViewport.height}px` : "100vh",
-          maxHeight: isKeyboardOpen && window.visualViewport ? `${window.visualViewport.height}px` : "100vh",
-        }}
-      >
-        {/* Header - Responsive */}
+      <div className="relative z-10 flex flex-col" style={{ height: containerHeight }}>
+        {/* Header - Fixed height */}
         <header className="border-b border-gray-800 bg-black/80 backdrop-blur-md flex-shrink-0">
           <div className="w-full px-4 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center justify-between">
@@ -222,13 +253,14 @@ const Chat = ({ onNavigate }) => {
           </div>
         </header>
 
-        {/* Messages Area - Responsive with keyboard handling */}
+        {/* Messages Area - Scrollable with fixed height */}
         <div
           ref={chatContainerRef}
-          className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6"
+          className="overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 flex-1"
           style={{
-            paddingBottom: isKeyboardOpen ? "20px" : undefined,
-            minHeight: 0, // Important for flex-1 to work properly
+            height: messagesHeight,
+            maxHeight: messagesHeight,
+            minHeight: 0,
           }}
         >
           <div className="w-full max-w-4xl mx-auto">
@@ -321,17 +353,8 @@ const Chat = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Input Area - Fixed at bottom with keyboard handling */}
-        <div
-          className="border-t border-gray-800 bg-black/90 backdrop-blur-md flex-shrink-0"
-          style={{
-            position: isKeyboardOpen ? "fixed" : "relative",
-            bottom: isKeyboardOpen ? 0 : "auto",
-            left: isKeyboardOpen ? 0 : "auto",
-            right: isKeyboardOpen ? 0 : "auto",
-            zIndex: isKeyboardOpen ? 1000 : "auto",
-          }}
-        >
+        {/* Input Area - Fixed at bottom, always visible */}
+        <div className="border-t border-gray-800 bg-black/95 backdrop-blur-md flex-shrink-0">
           <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
             {/* Image Mode Toggle - Above Input */}
             <div className="flex items-center justify-between mb-3">
@@ -348,9 +371,11 @@ const Chat = ({ onNavigate }) => {
                   {isImageMode ? "IMG ON" : "IMG OFF"}
                 </button>
               </div>
-              <div className="text-xs text-gray-500 hidden sm:block">
-                {isImageMode ? "Generate images from text" : "Chat with AI assistant"}
-              </div>
+              {!isKeyboardOpen && (
+                <div className="text-xs text-gray-500 hidden sm:block">
+                  {isImageMode ? "Generate images from text" : "Chat with AI assistant"}
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleSendMessage} className="relative">
@@ -389,44 +414,46 @@ const Chat = ({ onNavigate }) => {
               </div>
             </form>
 
-            {/* Quick Actions - Responsive - Hide on mobile when keyboard is open */}
-            <div className={`flex flex-wrap gap-1 sm:gap-2 mt-3 sm:mt-4 ${isKeyboardOpen ? "hidden sm:flex" : "flex"}`}>
-              {isImageMode
-                ? ["Realistic portrait", "Abstract art", "Landscape scene", "Digital artwork"].map(
-                    (suggestion, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setInputMessage(suggestion)}
-                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
-                      >
-                        <span className="hidden sm:inline">{suggestion}</span>
-                        <span className="sm:hidden">
-                          {suggestion === "Realistic portrait" && "Portrait"}
-                          {suggestion === "Abstract art" && "Abstract"}
-                          {suggestion === "Landscape scene" && "Landscape"}
-                          {suggestion === "Digital artwork" && "Digital"}
-                        </span>
-                      </button>
-                    ),
-                  )
-                : ["Explain AI concepts", "Help with coding", "Business strategy", "Creative writing"].map(
-                    (suggestion, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setInputMessage(suggestion)}
-                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
-                      >
-                        <span className="hidden sm:inline">{suggestion}</span>
-                        <span className="sm:hidden">
-                          {suggestion === "Explain AI concepts" && "AI"}
-                          {suggestion === "Help with coding" && "Code"}
-                          {suggestion === "Business strategy" && "Business"}
-                          {suggestion === "Creative writing" && "Creative"}
-                        </span>
-                      </button>
-                    ),
-                  )}
-            </div>
+            {/* Quick Actions - Hide on mobile when keyboard is open */}
+            {!isKeyboardOpen && (
+              <div className="flex flex-wrap gap-1 sm:gap-2 mt-3 sm:mt-4">
+                {isImageMode
+                  ? ["Realistic portrait", "Abstract art", "Landscape scene", "Digital artwork"].map(
+                      (suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setInputMessage(suggestion)}
+                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
+                        >
+                          <span className="hidden sm:inline">{suggestion}</span>
+                          <span className="sm:hidden">
+                            {suggestion === "Realistic portrait" && "Portrait"}
+                            {suggestion === "Abstract art" && "Abstract"}
+                            {suggestion === "Landscape scene" && "Landscape"}
+                            {suggestion === "Digital artwork" && "Digital"}
+                          </span>
+                        </button>
+                      ),
+                    )
+                  : ["Explain AI concepts", "Help with coding", "Business strategy", "Creative writing"].map(
+                      (suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setInputMessage(suggestion)}
+                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
+                        >
+                          <span className="hidden sm:inline">{suggestion}</span>
+                          <span className="sm:hidden">
+                            {suggestion === "Explain AI concepts" && "AI"}
+                            {suggestion === "Help with coding" && "Code"}
+                            {suggestion === "Business strategy" && "Business"}
+                            {suggestion === "Creative writing" && "Creative"}
+                          </span>
+                        </button>
+                      ),
+                    )}
+              </div>
+            )}
           </div>
         </div>
       </div>
