@@ -268,7 +268,7 @@ const Chat = ({ onNavigate }) => {
                         handleSendMessage(e)
                       }
                     }}
-                    placeholder="Ask Dark AI anything..."
+                    placeholder="click on IMG OFF to generate images..."
                     className="w-full bg-gray-900/50 border border-gray-700 rounded-2xl px-3 sm:px-4 py-2 sm:py-3 pr-16 sm:pr-20 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none backdrop-blur-sm text-sm sm:text-base"
                     rows="1"
                     style={{ minHeight: "44px", maxHeight: "120px" }}
