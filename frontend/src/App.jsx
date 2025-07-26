@@ -12,7 +12,7 @@ function App() {
 
   // Hero component state
   const [text, setText] = useState("")
-  const fullText = "The Future of Artificial Intelligence"
+  const fullText = "The DARK AI made by BHAVYA"
 
   // Stats component state
   const [counters, setCounters] = useState([0, 0, 0, 0])

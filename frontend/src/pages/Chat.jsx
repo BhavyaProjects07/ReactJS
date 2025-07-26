@@ -17,12 +17,8 @@ const Chat = ({ onNavigate }) => {
   const [isTyping, setIsTyping] = useState(false)
   const [isImageMode, setIsImageMode] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
-  const [viewportHeight, setViewportHeight] = useState(0)
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
-  const chatContainerRef = useRef(null)
-  const initialViewportHeight = useRef(0)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -32,79 +28,27 @@ const Chat = ({ onNavigate }) => {
     scrollToBottom()
   }, [messages])
 
-  // Comprehensive mobile keyboard handling
+  // Handle input focus to ensure it's visible
   useEffect(() => {
-    // Store initial viewport height
-    initialViewportHeight.current = window.innerHeight
-
-    const updateViewportHeight = () => {
-      const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight
-      const heightDifference = initialViewportHeight.current - currentHeight
-
-      setViewportHeight(currentHeight)
-      setIsKeyboardOpen(heightDifference > 150) // Keyboard is open if height difference > 150px
-
-      // Force scroll to bottom when keyboard opens
-      if (heightDifference > 150) {
-        setTimeout(() => {
-          scrollToBottom()
-          // Also scroll the input into view
-          if (inputRef.current) {
-            inputRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" })
-          }
-        }, 100)
-      }
-    }
-
-    // Initial setup
-    updateViewportHeight()
-
-    // Multiple event listeners for better compatibility
-    const handleResize = () => {
-      updateViewportHeight()
-    }
-
-    const handleVisualViewportChange = () => {
-      updateViewportHeight()
-    }
-
     const handleFocus = () => {
+      // Small delay to ensure keyboard is open
       setTimeout(() => {
-        updateViewportHeight()
-        setIsKeyboardOpen(true)
+        if (inputRef.current) {
+          inputRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          })
+        }
         scrollToBottom()
       }, 300)
     }
 
-    const handleBlur = () => {
-      setTimeout(() => {
-        updateViewportHeight()
-      }, 300)
-    }
-
-    // Add event listeners
-    window.addEventListener("resize", handleResize)
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", handleVisualViewportChange)
-    }
-
     if (inputRef.current) {
       inputRef.current.addEventListener("focus", handleFocus)
-      inputRef.current.addEventListener("blur", handleBlur)
-    }
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("resize", handleResize)
-
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener("resize", handleVisualViewportChange)
-      }
-
-      if (inputRef.current) {
-        inputRef.current.removeEventListener("focus", handleFocus)
-        inputRef.current.removeEventListener("blur", handleBlur)
+      return () => {
+        if (inputRef.current) {
+          inputRef.current.removeEventListener("focus", handleFocus)
+        }
       }
     }
   }, [])
@@ -168,20 +112,8 @@ const Chat = ({ onNavigate }) => {
   const formatTime = (timestamp) => timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
   const copyMessage = (content) => navigator.clipboard.writeText(content)
 
-  // Calculate dynamic heights
-  const containerHeight = viewportHeight > 0 ? `${viewportHeight}px` : "100vh"
-  const headerHeight = 80 // Approximate header height
-  const inputAreaHeight = 140 // Approximate input area height
-  const messagesHeight =
-    viewportHeight > 0
-      ? `${viewportHeight - headerHeight - inputAreaHeight}px`
-      : `calc(100vh - ${headerHeight + inputAreaHeight}px)`
-
   return (
-    <div
-      className="bg-black text-white"
-      style={{ height: containerHeight, maxHeight: containerHeight, overflow: "hidden" }}
-    >
+    <div className="min-h-screen bg-black text-white">
       {/* Background Effects */}
       <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black"></div>
@@ -189,9 +121,9 @@ const Chat = ({ onNavigate }) => {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      <div className="relative z-10 flex flex-col" style={{ height: containerHeight }}>
-        {/* Header - Fixed height */}
-        <header className="border-b border-gray-800 bg-black/80 backdrop-blur-md flex-shrink-0">
+      <div className="relative z-10">
+        {/* Header - Fixed at top */}
+        <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-800 bg-black/80 backdrop-blur-md">
           <div className="w-full px-4 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center justify-between">
               {/* Left Section */}
@@ -253,14 +185,12 @@ const Chat = ({ onNavigate }) => {
           </div>
         </header>
 
-        {/* Messages Area - Scrollable with fixed height */}
+        {/* Messages Area - Scrollable with padding for fixed header and input */}
         <div
-          ref={chatContainerRef}
-          className="overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 flex-1"
+          className="pt-20 pb-44 px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 min-h-screen overflow-y-auto"
           style={{
-            height: messagesHeight,
-            maxHeight: messagesHeight,
-            minHeight: 0,
+            paddingBottom: "max(180px, env(keyboard-inset-height, 180px))",
+            minHeight: "100vh",
           }}
         >
           <div className="w-full max-w-4xl mx-auto">
@@ -353,8 +283,13 @@ const Chat = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Input Area - Fixed at bottom, always visible */}
-        <div className="border-t border-gray-800 bg-black/95 backdrop-blur-md flex-shrink-0">
+        {/* Input Area - Fixed at bottom, above keyboard */}
+        <div
+          className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-800 bg-black/95 backdrop-blur-md"
+          style={{
+            paddingBottom: "max(env(safe-area-inset-bottom, 0px), env(keyboard-inset-height, 0px))",
+          }}
+        >
           <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
             {/* Image Mode Toggle - Above Input */}
             <div className="flex items-center justify-between mb-3">
@@ -371,11 +306,9 @@ const Chat = ({ onNavigate }) => {
                   {isImageMode ? "IMG ON" : "IMG OFF"}
                 </button>
               </div>
-              {!isKeyboardOpen && (
-                <div className="text-xs text-gray-500 hidden sm:block">
-                  {isImageMode ? "Generate images from text" : "Chat with AI assistant"}
-                </div>
-              )}
+              <div className="text-xs text-gray-500 hidden sm:block">
+                {isImageMode ? "Generate images from text" : "Chat with AI assistant"}
+              </div>
             </div>
 
             <form onSubmit={handleSendMessage} className="relative">
@@ -414,46 +347,44 @@ const Chat = ({ onNavigate }) => {
               </div>
             </form>
 
-            {/* Quick Actions - Hide on mobile when keyboard is open */}
-            {!isKeyboardOpen && (
-              <div className="flex flex-wrap gap-1 sm:gap-2 mt-3 sm:mt-4">
-                {isImageMode
-                  ? ["Realistic portrait", "Abstract art", "Landscape scene", "Digital artwork"].map(
-                      (suggestion, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setInputMessage(suggestion)}
-                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
-                        >
-                          <span className="hidden sm:inline">{suggestion}</span>
-                          <span className="sm:hidden">
-                            {suggestion === "Realistic portrait" && "Portrait"}
-                            {suggestion === "Abstract art" && "Abstract"}
-                            {suggestion === "Landscape scene" && "Landscape"}
-                            {suggestion === "Digital artwork" && "Digital"}
-                          </span>
-                        </button>
-                      ),
-                    )
-                  : ["Explain AI concepts", "Help with coding", "Business strategy", "Creative writing"].map(
-                      (suggestion, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setInputMessage(suggestion)}
-                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
-                        >
-                          <span className="hidden sm:inline">{suggestion}</span>
-                          <span className="sm:hidden">
-                            {suggestion === "Explain AI concepts" && "AI"}
-                            {suggestion === "Help with coding" && "Code"}
-                            {suggestion === "Business strategy" && "Business"}
-                            {suggestion === "Creative writing" && "Creative"}
-                          </span>
-                        </button>
-                      ),
-                    )}
-              </div>
-            )}
+            {/* Quick Actions - Responsive */}
+            <div className="flex flex-wrap gap-1 sm:gap-2 mt-3 sm:mt-4">
+              {isImageMode
+                ? ["Realistic portrait", "Abstract art", "Landscape scene", "Digital artwork"].map(
+                    (suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInputMessage(suggestion)}
+                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
+                      >
+                        <span className="hidden sm:inline">{suggestion}</span>
+                        <span className="sm:hidden">
+                          {suggestion === "Realistic portrait" && "Portrait"}
+                          {suggestion === "Abstract art" && "Abstract"}
+                          {suggestion === "Landscape scene" && "Landscape"}
+                          {suggestion === "Digital artwork" && "Digital"}
+                        </span>
+                      </button>
+                    ),
+                  )
+                : ["Explain AI concepts", "Help with coding", "Business strategy", "Creative writing"].map(
+                    (suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInputMessage(suggestion)}
+                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
+                      >
+                        <span className="hidden sm:inline">{suggestion}</span>
+                        <span className="sm:hidden">
+                          {suggestion === "Explain AI concepts" && "AI"}
+                          {suggestion === "Help with coding" && "Code"}
+                          {suggestion === "Business strategy" && "Business"}
+                          {suggestion === "Creative writing" && "Creative"}
+                        </span>
+                      </button>
+                    ),
+                  )}
+            </div>
           </div>
         </div>
       </div>
