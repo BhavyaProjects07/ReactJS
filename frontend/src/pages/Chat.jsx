@@ -250,22 +250,31 @@ const Chat = ({ onNavigate }) => {
             )}
             <div ref={messagesEndRef} />
           </div>
-        <div className="absolute right-12 sm:right-16 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-          <span
-            className="text-xs sm:text-sm text-purple-400 cursor-pointer hover:text-purple-300 transition-colors duration-200 whitespace-nowrap"
-            onClick={() => setIsImageMode(!isImageMode)}
-          >
-            <span className="hidden sm:inline">
-              {isImageMode ? "Generate Image On" : "Generate Image Off"}
-            </span>
-            <span className="sm:hidden">{isImageMode ? "IMG ON" : "IMG OFF"}</span>
-          </span>
         </div>
-        </div>
-        
+
         {/* Input Area - Responsive */}
         <div className="border-t border-gray-800 bg-black/80 backdrop-blur-md">
           <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
+            {/* Image Mode Toggle - Above Input */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs sm:text-sm text-gray-400">Mode:</span>
+                <button
+                  onClick={() => setIsImageMode(!isImageMode)}
+                  className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+                    isImageMode
+                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25"
+                      : "bg-gray-800/50 border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600"
+                  }`}
+                >
+                  {isImageMode ? "IMG ON" : "IMG OFF"}
+                </button>
+              </div>
+              <div className="text-xs text-gray-500">
+                {isImageMode ? "Generate images from text" : "Chat with AI assistant"}
+              </div>
+            </div>
+
             <form onSubmit={handleSendMessage} className="relative">
               <div className="flex items-end space-x-2 sm:space-x-4">
                 <div className="flex-1 relative">
@@ -279,14 +288,11 @@ const Chat = ({ onNavigate }) => {
                         handleSendMessage(e)
                       }
                     }}
-                    placeholder="click on IMG OFF to generate images..."
-                    className="w-full bg-gray-900/50 border border-gray-700 rounded-2xl px-3 sm:px-4 py-2 sm:py-3 pr-16 sm:pr-20 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none backdrop-blur-sm text-sm sm:text-base"
+                    placeholder={isImageMode ? "Describe the image you want to generate..." : "Ask Dark AI anything..."}
+                    className="w-full bg-gray-900/50 border border-gray-700 rounded-2xl px-3 sm:px-4 py-2 sm:py-3 pr-12 sm:pr-16 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none backdrop-blur-sm text-sm sm:text-base"
                     rows="1"
                     style={{ minHeight: "44px", maxHeight: "120px" }}
                   />
-
-                  {/* Image Mode Toggle - Responsive */}
-                  
 
                   {/* Sparkles Icon */}
                   <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
@@ -307,23 +313,41 @@ const Chat = ({ onNavigate }) => {
 
             {/* Quick Actions - Responsive */}
             <div className="flex flex-wrap gap-1 sm:gap-2 mt-3 sm:mt-4">
-              {["Explain AI concepts", "Help with coding", "Business strategy", "Creative writing"].map(
-                (suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setInputMessage(suggestion)}
-                    className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
-                  >
-                    <span className="hidden sm:inline">{suggestion}</span>
-                    <span className="sm:hidden">
-                      {suggestion === "Explain AI concepts" && "AI"}
-                      {suggestion === "Help with coding" && "Code"}
-                      {suggestion === "Business strategy" && "Business"}
-                      {suggestion === "Creative writing" && "Creative"}
-                    </span>
-                  </button>
-                ),
-              )}
+              {isImageMode
+                ? ["Realistic portrait", "Abstract art", "Landscape scene", "Digital artwork"].map(
+                    (suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInputMessage(suggestion)}
+                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
+                      >
+                        <span className="hidden sm:inline">{suggestion}</span>
+                        <span className="sm:hidden">
+                          {suggestion === "Realistic portrait" && "Portrait"}
+                          {suggestion === "Abstract art" && "Abstract"}
+                          {suggestion === "Landscape scene" && "Landscape"}
+                          {suggestion === "Digital artwork" && "Digital"}
+                        </span>
+                      </button>
+                    ),
+                  )
+                : ["Explain AI concepts", "Help with coding", "Business strategy", "Creative writing"].map(
+                    (suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInputMessage(suggestion)}
+                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-gray-800/50 border border-gray-700 rounded-full text-gray-300 hover:text-white hover:border-purple-500 transition-all duration-200 whitespace-nowrap"
+                      >
+                        <span className="hidden sm:inline">{suggestion}</span>
+                        <span className="sm:hidden">
+                          {suggestion === "Explain AI concepts" && "AI"}
+                          {suggestion === "Help with coding" && "Code"}
+                          {suggestion === "Business strategy" && "Business"}
+                          {suggestion === "Creative writing" && "Creative"}
+                        </span>
+                      </button>
+                    ),
+                  )}
             </div>
           </div>
         </div>
