@@ -109,6 +109,9 @@ const TextToSpeech = ({ onNavigate }) => {
     { code: "de", name: "German", flag: "🇩🇪" },
   ]
 
+  console.log("🎧 Final Cloudinary Audio URL:", res.data.audio_url);
+
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Background Effects */}
