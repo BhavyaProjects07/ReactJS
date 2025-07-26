@@ -5,7 +5,7 @@ import { ArrowRight, Sparkles, Brain, Cpu, Zap, Eye, Rocket, Shield, Code, Datab
 import Header from "./components/Header.jsx"
 import Footer from "./components/Footer.jsx"
 import Chat from "./pages/Chat.jsx"
-import { Link } from "react-router-dom"
+
 function App() {
   const [currentPage, setCurrentPage] = useState("home")
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -144,14 +144,14 @@ function App() {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
-      {/* Animated Background */}
+      {/* Animated Background - Responsive */}
       <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black"></div>
         <div className="absolute inset-0 bg-gradient-radial from-purple-900/20 via-transparent to-transparent"></div>
 
-        {/* Floating Particles */}
+        {/* Floating Particles - Responsive */}
         <div className="particles-container">
-          {[...Array(30)].map((_, i) => (
+          {[...Array(window.innerWidth < 768 ? 15 : 30)].map((_, i) => (
             <div
               key={i}
               className="particle"
@@ -165,74 +165,74 @@ function App() {
           ))}
         </div>
 
-        {/* Mouse Follower Glow */}
+        {/* Mouse Follower Glow - Hidden on mobile */}
         <div
-          className="pointer-events-none fixed w-96 h-96 rounded-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-3xl transition-all duration-300 ease-out z-0"
+          className="pointer-events-none fixed w-64 h-64 sm:w-96 sm:h-96 rounded-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-3xl transition-all duration-300 ease-out z-0 hidden sm:block"
           style={{
-            left: mousePosition.x - 192,
-            top: mousePosition.y - 192,
+            left: mousePosition.x - (window.innerWidth < 640 ? 128 : 192),
+            top: mousePosition.y - (window.innerWidth < 640 ? 128 : 192),
           }}
         />
 
-        {/* Background Orbs */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        {/* Background Orbs - Responsive */}
+        <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-96 sm:h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-96 sm:h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
       </div>
 
       <div className="relative z-10">
         <Header onNavigate={setCurrentPage} />
 
-        {/* Hero Section */}
-        <section id="home" className="min-h-screen flex items-center justify-center pt-20 px-6">
-          <div className="container mx-auto text-center relative">
-            {/* Floating Icons */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <Brain className="absolute top-1/4 left-1/4 w-8 h-8 text-purple-400/30 animate-float" />
-              <Cpu className="absolute top-1/3 right-1/4 w-6 h-6 text-blue-400/30 animate-float-delayed" />
-              <Sparkles className="absolute bottom-1/3 left-1/3 w-10 h-10 text-purple-400/20 animate-float" />
-              <Zap className="absolute top-1/2 right-1/3 w-7 h-7 text-blue-400/25 animate-float" />
+        {/* Hero Section - Responsive */}
+        <section id="home" className="min-h-screen flex items-center justify-center pt-16 sm:pt-20 px-4 sm:px-6">
+          <div className="container mx-auto text-center relative max-w-7xl">
+            {/* Floating Icons - Responsive */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none hidden sm:block">
+              <Brain className="absolute top-1/4 left-1/4 w-6 h-6 sm:w-8 sm:h-8 text-purple-400/30 animate-float" />
+              <Cpu className="absolute top-1/3 right-1/4 w-5 h-5 sm:w-6 sm:h-6 text-blue-400/30 animate-float-delayed" />
+              <Sparkles className="absolute bottom-1/3 left-1/3 w-8 h-8 sm:w-10 sm:h-10 text-purple-400/20 animate-float" />
+              <Zap className="absolute top-1/2 right-1/3 w-6 h-6 sm:w-7 sm:h-7 text-blue-400/25 animate-float" />
             </div>
 
-            {/* Main Content */}
+            {/* Main Content - Responsive */}
             <div className="relative z-10">
-              <div className="mb-8 animate-fade-in">
-                <span className="inline-block px-4 py-2 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-full text-sm font-medium text-purple-300 border border-purple-500/30">
+              <div className="mb-6 sm:mb-8 animate-fade-in">
+                <span className="inline-block px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-full text-xs sm:text-sm font-medium text-purple-300 border border-purple-500/30">
                   ✨ Next Generation AI Platform
                 </span>
               </div>
 
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight animate-fade-in-up">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight animate-fade-in-up">
                 <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
                   Dark AI
                 </span>
                 <br />
-                <span className="text-2xl md:text-4xl font-normal text-gray-400 typewriter">
+                <span className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-normal text-gray-400 typewriter">
                   {text}
                   <span className="animate-pulse">|</span>
                 </span>
               </h1>
 
-              <p className="text-xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
+              <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-8 sm:mb-12 max-w-xs sm:max-w-2xl md:max-w-3xl mx-auto leading-relaxed animate-fade-in-up px-4 sm:px-0">
                 Harness the power of advanced artificial intelligence to transform your business. Experience
                 cutting-edge technology that adapts, learns, and evolves with your needs.
               </p>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 animate-fade-in-up">
+              {/* CTA Buttons - Responsive */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-16 animate-fade-in-up px-4 sm:px-0">
                 <button
                   onClick={() => setCurrentPage("chat")}
-                  className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full text-white font-semibold hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
+                  className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full text-white font-semibold hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2"
                 >
                   <span>Start Your Journey</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </button>
-                <button className="px-8 py-4 border border-gray-600 rounded-full text-white font-semibold hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 transform hover:scale-105">
+                <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border border-gray-600 rounded-full text-white font-semibold hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 transform hover:scale-105">
                   Watch Demo
                 </button>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              {/* Stats - Responsive */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 max-w-xs sm:max-w-4xl mx-auto px-4 sm:px-0">
                 {[
                   { number: "99.9%", label: "Accuracy Rate" },
                   { number: "10M+", label: "Data Points" },
@@ -243,10 +243,10 @@ function App() {
                     className="text-center animate-fade-in-up"
                     style={{ animationDelay: `${index * 200}ms` }}
                   >
-                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-2">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-1 sm:mb-2">
                       {stat.number}
                     </div>
-                    <div className="text-gray-400 text-sm uppercase tracking-wider">{stat.label}</div>
+                    <div className="text-gray-400 text-xs sm:text-sm uppercase tracking-wider">{stat.label}</div>
                   </div>
                 ))}
               </div>
@@ -254,25 +254,25 @@ function App() {
           </div>
         </section>
 
-        {/* Features Section */}
-        <section id="features" className="py-24 px-6">
-          <div className="container mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 animate-fade-in">
+        {/* Features Section - Responsive */}
+        <section id="features" className="py-16 sm:py-20 md:py-24 px-4 sm:px-6">
+          <div className="container mx-auto max-w-7xl">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 animate-fade-in">
                 <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                   Powerful Features
                 </span>
               </h2>
-              <p className="text-xl text-gray-400 max-w-3xl mx-auto animate-fade-in-up">
+              <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-xs sm:max-w-2xl md:max-w-3xl mx-auto animate-fade-in-up px-4 sm:px-0">
                 Discover the cutting-edge capabilities that make Dark AI the ultimate choice for intelligent automation
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className="group relative p-8 bg-gray-900/50 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all duration-500 hover:transform hover:scale-105 animate-fade-in-up backdrop-blur-sm"
+                  className="group relative p-6 sm:p-8 bg-gray-900/50 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all duration-500 hover:transform hover:scale-105 animate-fade-in-up backdrop-blur-sm"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   {/* Glow Effect */}
@@ -282,23 +282,23 @@ function App() {
 
                   {/* Icon */}
                   <div
-                    className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${feature.gradient} mb-6 group-hover:scale-110 transition-transform duration-300`}
+                    className={`inline-flex p-2.5 sm:p-3 rounded-xl bg-gradient-to-r ${feature.gradient} mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300`}
                   >
-                    <feature.icon className="w-6 h-6 text-white" />
+                    <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-xl font-semibold text-white mb-4 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-white group-hover:to-gray-300 transition-all duration-300">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-white group-hover:to-gray-300 transition-all duration-300">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+                  <p className="text-gray-400 leading-relaxed text-sm sm:text-base">{feature.description}</p>
 
                   {/* Hover Arrow */}
-                  <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div
-                      className={`w-8 h-8 rounded-full bg-gradient-to-r ${feature.gradient} flex items-center justify-center`}
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r ${feature.gradient} flex items-center justify-center`}
                     >
-                      <ArrowRight className="w-4 h-4 text-white" />
+                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                     </div>
                   </div>
                 </div>
@@ -307,39 +307,41 @@ function App() {
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className="py-24 px-6">
-          <div className="container mx-auto">
+        {/* Stats Section - Responsive */}
+        <section className="py-16 sm:py-20 md:py-24 px-4 sm:px-6">
+          <div className="container mx-auto max-w-7xl">
             <div className="relative">
               {/* Background Glow */}
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 rounded-3xl blur-3xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 rounded-2xl sm:rounded-3xl blur-3xl"></div>
 
-              <div className="relative bg-gray-900/30 rounded-3xl border border-gray-800 p-12 backdrop-blur-sm">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-fade-in">
+              <div className="relative bg-gray-900/30 rounded-2xl sm:rounded-3xl border border-gray-800 p-6 sm:p-8 md:p-12 backdrop-blur-sm">
+                <div className="text-center mb-8 sm:mb-12">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 animate-fade-in">
                     <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                       Trusted by Industry Leaders
                     </span>
                   </h2>
-                  <p className="text-gray-400 text-lg animate-fade-in-up">
+                  <p className="text-base sm:text-lg text-gray-400 animate-fade-in-up">
                     Join thousands of companies already using Dark AI
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
                   {counters.map((count, index) => (
                     <div
                       key={index}
                       className="text-center animate-fade-in-up"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <div className="text-4xl md:text-5xl font-bold mb-2">
+                      <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-1 sm:mb-2">
                         <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                           {count}
                           {suffixes[index]}
                         </span>
                       </div>
-                      <div className="text-gray-400 text-sm uppercase tracking-wider">{labels[index]}</div>
+                      <div className="text-gray-400 text-xs sm:text-sm uppercase tracking-wider px-1">
+                        {labels[index]}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -348,54 +350,58 @@ function App() {
           </div>
         </section>
 
-        {/* Services Section */}
-        <section id="services" className="py-24 px-6">
-          <div className="container mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 animate-fade-in">
+        {/* Services Section - Responsive */}
+        <section id="services" className="py-16 sm:py-20 md:py-24 px-4 sm:px-6">
+          <div className="container mx-auto max-w-7xl">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 animate-fade-in">
                 <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                   Our Services
                 </span>
               </h2>
-              <p className="text-xl text-gray-400 max-w-3xl mx-auto animate-fade-in-up">
+              <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-xs sm:max-w-2xl md:max-w-3xl mx-auto animate-fade-in-up px-4 sm:px-0">
                 Comprehensive AI solutions designed to transform your business operations
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
               {services.map((service, index) => (
                 <div
                   key={index}
-                  className="group bg-gray-900/40 backdrop-blur-sm border border-gray-800 rounded-2xl p-8 hover:border-gray-700 transition-all duration-500 hover:transform hover:scale-105 animate-fade-in-up"
+                  className="group bg-gray-900/40 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 sm:p-8 hover:border-gray-700 transition-all duration-500 hover:transform hover:scale-105 animate-fade-in-up"
                   style={{ animationDelay: `${index * 150}ms` }}
                 >
                   {/* Icon */}
                   <div
-                    className={`inline-flex p-4 rounded-xl bg-gradient-to-r ${service.gradient} mb-6 group-hover:scale-110 transition-transform duration-300`}
+                    className={`inline-flex p-3 sm:p-4 rounded-xl bg-gradient-to-r ${service.gradient} mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300`}
                   >
-                    <service.icon className="w-8 h-8 text-white" />
+                    <service.icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-2xl font-bold mb-4 text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-white group-hover:to-gray-300 transition-all duration-300">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-white group-hover:to-gray-300 transition-all duration-300">
                     {service.title}
                   </h3>
-                  <p className="text-gray-400 mb-6 leading-relaxed">{service.description}</p>
+                  <p className="text-gray-400 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base">
+                    {service.description}
+                  </p>
 
                   {/* Features */}
-                  <ul className="space-y-2 mb-8">
+                  <ul className="space-y-2 mb-6 sm:mb-8">
                     {service.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center text-gray-300">
-                        <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${service.gradient} mr-3`}></div>
+                      <li key={idx} className="flex items-center text-gray-300 text-sm sm:text-base">
+                        <div
+                          className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gradient-to-r ${service.gradient} mr-2 sm:mr-3 flex-shrink-0`}
+                        ></div>
                         {feature}
                       </li>
                     ))}
                   </ul>
 
                   {/* CTA */}
-                  <button className="group/btn flex items-center space-x-2 text-white font-semibold hover:text-purple-400 transition-all duration-300">
+                  <button className="group/btn flex items-center space-x-2 text-white font-semibold hover:text-purple-400 transition-all duration-300 text-sm sm:text-base">
                     <span>Learn More</span>
-                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
+                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
                   </button>
                 </div>
               ))}

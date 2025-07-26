@@ -80,8 +80,7 @@ const TextToSpeech = ({ onNavigate }) => {
   } finally {
     setIsGenerating(false)
     }
-    console.log("🎧 Final Cloudinary Audio URL:", res.data.audio_url);
-
+    
 }
 
   const togglePlayPause = () => {
