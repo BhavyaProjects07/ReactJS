@@ -267,7 +267,7 @@ const Chat = ({ onNavigate }) => {
                       : "bg-gray-800/50 border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600"
                   }`}
                 >
-                  {isImageMode ? "IMG ON" : "IMG OFF"}
+                  {isImageMode ? "GENERATE IMG ON" : "GENERATE IMG OFF"}
                 </button>
               </div>
               <div className="text-xs text-gray-500">
@@ -288,7 +288,7 @@ const Chat = ({ onNavigate }) => {
                         handleSendMessage(e)
                       }
                     }}
-                    placeholder={isImageMode ? "Describe the image you want to generate..." : "Ask Dark AI anything..."}
+                    placeholder={isImageMode ? "Describe the image..." : "Ask Dark AI anything..."}
                     placeholder={isImageMode ? "Describe the image..." : "Ask Dark AI anything..."}
                     className="w-full bg-gray-900/50 border border-gray-700 rounded-2xl px-3 sm:px-4 py-2 sm:py-3 pr-12 sm:pr-16 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none backdrop-blur-sm text-sm sm:text-base"
                     rows="1"
