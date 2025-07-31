@@ -19,14 +19,22 @@ const Chat = ({ onNavigate }) => {
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  const [showStartupNotice, setShowStartupNotice] = useState(true)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+  scrollToBottom()
+
+  const timer = setTimeout(() => {
+    setShowStartupNotice(false)
+  }, 15000) // 15 seconds
+
+  return () => clearTimeout(timer)
+}, [])
+
 
   const handleSendMessage = async (e) => {
     e.preventDefault()
@@ -162,6 +170,12 @@ const Chat = ({ onNavigate }) => {
 
         {/* Messages Area - Responsive */}
         <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+          {showStartupNotice && (
+            <div className="mb-4 p-3 rounded-xl bg-yellow-900/30 border border-yellow-600 text-yellow-300 text-sm text-center animate-pulse">
+              ⚠️ Server is waking up... Response might take a few seconds only for the first request.
+            </div>
+          )}
+
           <div className="w-full max-w-4xl mx-auto">
             {messages.map((message) => (
               <div
@@ -289,7 +303,7 @@ const Chat = ({ onNavigate }) => {
                       }
                     }}
                     placeholder={isImageMode ? "Describe the image..." : "Ask Dark AI anything..."}
-                    placeholder={isImageMode ? "Describe the image..." : "Ask Dark AI anything..."}
+  
                     className="w-full bg-gray-900/50 border border-gray-700 rounded-2xl px-3 sm:px-4 py-2 sm:py-3 pr-12 sm:pr-16 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none backdrop-blur-sm text-sm sm:text-base"
                     rows="1"
                     style={{ minHeight: "44px", maxHeight: "120px" }}
