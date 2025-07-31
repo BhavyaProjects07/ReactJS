@@ -28,31 +28,6 @@ const Chat = ({ onNavigate }) => {
     scrollToBottom()
   }, [messages])
 
-  // Handle input focus to ensure it's visible
-  useEffect(() => {
-    const handleFocus = () => {
-      // Small delay to ensure keyboard is open
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-          })
-        }
-        scrollToBottom()
-      }, 300)
-    }
-
-    if (inputRef.current) {
-      inputRef.current.addEventListener("focus", handleFocus)
-      return () => {
-        if (inputRef.current) {
-          inputRef.current.removeEventListener("focus", handleFocus)
-        }
-      }
-    }
-  }, [])
-
   const handleSendMessage = async (e) => {
     e.preventDefault()
     if (!inputMessage.trim()) return
@@ -121,9 +96,9 @@ const Chat = ({ onNavigate }) => {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      <div className="relative z-10">
-        {/* Header - Fixed at top */}
-        <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-800 bg-black/80 backdrop-blur-md">
+      <div className="relative z-10 flex flex-col h-screen">
+        {/* Header - Responsive */}
+        <header className="border-b border-gray-800 bg-black/80 backdrop-blur-md">
           <div className="w-full px-4 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center justify-between">
               {/* Left Section */}
@@ -185,14 +160,8 @@ const Chat = ({ onNavigate }) => {
           </div>
         </header>
 
-        {/* Messages Area - Scrollable with padding for fixed header and input */}
-        <div
-          className="pt-20 pb-44 px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 min-h-screen overflow-y-auto"
-          style={{
-            paddingBottom: "max(180px, env(keyboard-inset-height, 180px))",
-            minHeight: "100vh",
-          }}
-        >
+        {/* Messages Area - Responsive */}
+        <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
           <div className="w-full max-w-4xl mx-auto">
             {messages.map((message) => (
               <div
@@ -283,13 +252,8 @@ const Chat = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Input Area - Fixed at bottom, above keyboard */}
-        <div
-          className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-800 bg-black/95 backdrop-blur-md"
-          style={{
-            paddingBottom: "max(env(safe-area-inset-bottom, 0px), env(keyboard-inset-height, 0px))",
-          }}
-        >
+        {/* Input Area - Responsive */}
+        <div className="border-t border-gray-800 bg-black/80 backdrop-blur-md">
           <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
             {/* Image Mode Toggle - Above Input */}
             <div className="flex items-center justify-between mb-3">
@@ -303,10 +267,10 @@ const Chat = ({ onNavigate }) => {
                       : "bg-gray-800/50 border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600"
                   }`}
                 >
-                  {isImageMode ? "GENERATE IMG ON" : "GENERATE IMG OFF"}
+                  {isImageMode ? "IMG ON" : "IMG OFF"}
                 </button>
               </div>
-              <div className="text-xs text-gray-500 hidden sm:block">
+              <div className="text-xs text-gray-500">
                 {isImageMode ? "Generate images from text" : "Chat with AI assistant"}
               </div>
             </div>
@@ -324,6 +288,7 @@ const Chat = ({ onNavigate }) => {
                         handleSendMessage(e)
                       }
                     }}
+                    placeholder={isImageMode ? "Describe the image you want to generate..." : "Ask Dark AI anything..."}
                     placeholder={isImageMode ? "Describe the image..." : "Ask Dark AI anything..."}
                     className="w-full bg-gray-900/50 border border-gray-700 rounded-2xl px-3 sm:px-4 py-2 sm:py-3 pr-12 sm:pr-16 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none backdrop-blur-sm text-sm sm:text-base"
                     rows="1"

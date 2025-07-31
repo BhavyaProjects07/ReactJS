@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { ArrowLeft, Mail, Phone, MapPin, Send, User, MessageSquare, Sparkles, Brain, Clock, CheckCircle } from 'lucide-react'
-
+import {Link} from 'react-router-dom'
 const Contact = ({ onNavigate }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -91,7 +91,7 @@ const Contact = ({ onNavigate }) => {
     {
       icon: Mail,
       title: "Email Us",
-      content: "hello@darkai.com",
+      content: "laptopuse01824x@gmail.com",
       description: "Send us an email anytime",
       gradient: "from-purple-500 to-pink-500",
     },
@@ -105,7 +105,7 @@ const Contact = ({ onNavigate }) => {
     {
       icon: MapPin,
       title: "Visit Us",
-      content: "San Francisco, CA",
+      content: "Dehradun Uttrakhand, India",
       description: "Come say hello at our HQ",
       gradient: "from-green-500 to-emerald-500",
     },
@@ -170,12 +170,15 @@ const Contact = ({ onNavigate }) => {
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => onNavigate("home")}
-                  className="p-2 hover:bg-gray-800 rounded-lg transition-colors duration-200"
-                >
-                  <ArrowLeft className="w-5 h-5 text-gray-400" />
-                </button>
+                <Link to="/" onClick={() => onNavigate("home")}>
+                  
+                    <button
+                      
+                      className="p-2 hover:bg-gray-800 rounded-lg transition-colors duration-200"
+                    >
+                      <ArrowLeft className="w-5 h-5 text-gray-400" />
+                  </button>
+                </Link>
                 <div className="flex items-center space-x-3">
                   <div className="relative">
                     <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
