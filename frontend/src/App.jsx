@@ -1,14 +1,20 @@
 "use client"
-
+import {Link} from "react-router-dom"
 import { useState, useEffect } from "react"
 import { ArrowRight, Sparkles, Brain, Cpu, Zap, Eye, Rocket, Shield, Code, Database, Settings } from "lucide-react"
 import Header from "./components/Header.jsx"
 import Footer from "./components/Footer.jsx"
 import Chat from "./pages/Chat.jsx"
+import Signup from "./pages/Signup.jsx";
+import Signin from "./pages/Signin.jsx";
+import { FaUserCircle } from "react-icons/fa"; // ⬅️ Add this import at the top
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home")
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [username, setUsername] = useState(localStorage.getItem("username") || null);
+  const [showSignup, setShowSignup] = useState(false);
+  const [showSignin, setShowSignin] = useState(false);
 
   // Hero component state
   const [text, setText] = useState("")
@@ -226,9 +232,18 @@ function App() {
                   <span>Start Your Journey</span>
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </button>
-                <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border border-gray-600 rounded-full text-white font-semibold hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 transform hover:scale-105">
-                  Watch Demo
-                </button>
+              {username ? (
+                <span className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border border-purple-400 rounded-full text-white font-semibold bg-gradient-to-r from-purple-600/30 to-blue-600/30 shadow-lg shadow-purple-500/10 transition-all duration-300">
+                  {username}
+                </span>
+              ) : (
+                <Link
+                  to="/signup"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border border-gray-600 rounded-full text-white font-semibold hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 transform hover:scale-105"
+                >
+                  Sign Up
+                </Link>
+              )}
               </div>
 
               {/* Stats - Responsive */}

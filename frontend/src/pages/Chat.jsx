@@ -30,7 +30,7 @@ const Chat = ({ onNavigate }) => {
 
   const timer = setTimeout(() => {
     setShowStartupNotice(false)
-  }, 15000) // 15 seconds
+  }, 20000) // 20 seconds
 
   return () => clearTimeout(timer)
 }, [])
@@ -171,10 +171,11 @@ const Chat = ({ onNavigate }) => {
         {/* Messages Area - Responsive */}
         <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
           {showStartupNotice && (
-            <div className="mb-4 p-3 rounded-xl bg-yellow-900/30 border border-yellow-600 text-yellow-300 text-sm text-center animate-pulse">
+          <div className="mb-4 p-3 rounded-xl bg-yellow-900/30 border border-yellow-600 text-yellow-300 text-sm text-center animate-pulse">
               ⚠️ Server is waking up... Response might take a few seconds only for the first request.
-            </div>
-          )}
+              please stay on the chat.
+          </div>
+        )}
 
           <div className="w-full max-w-4xl mx-auto">
             {messages.map((message) => (

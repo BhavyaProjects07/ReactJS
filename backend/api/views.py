@@ -169,7 +169,6 @@ class ChatAPIView(APIView):
 
 
 
-# views.py
 
 import os
 import mimetypes
@@ -313,3 +312,110 @@ class TextToSpeechView(APIView):
             os.remove(filepath)
 
         return Response({"audio_url": cloud_url})
+
+
+
+
+
+
+# login/signup views
+
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.mail import send_mail
+from rest_framework_simplejwt.tokens import RefreshToken
+import random
+
+# Temporary store for OTPs (in-memory, replace with DB/cache for production)
+otp_storage = {}
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def auth_view(request):
+    action = request.data.get("action")  # "signup", "verify", "signin"
+
+    # ✅ SIGNUP
+    if action == "signup":
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        if not username or not email or not password:
+            return Response({"error": "All fields are required"}, status=400)
+
+        if User.objects.filter(email=email).exists():
+            return Response({"error": "Email already registered"}, status=400)
+
+        user = User.objects.create_user(username=username, email=email, password=password, is_active=False)
+        otp = generate_otp()
+        otp_storage[email] = otp
+
+        send_mail(
+            "Dark AI - Email Verification",
+            f"Your OTP is {otp}",
+            "noreply@darkai.com",
+            [email],
+            fail_silently=False,
+        )
+
+        return Response({"message": "Signup successful. Verify with OTP."}, status=201)
+
+    # ✅ VERIFY OTP
+    elif action == "verify":
+        email = request.data.get("email")
+        otp = request.data.get("otp")
+
+        if otp_storage.get(email) != otp:
+            return Response({"error": "Invalid OTP"}, status=400)
+
+        try:
+            user = User.objects.get(email=email)
+            user.is_active = True
+            user.save()
+            del otp_storage[email]
+            return Response({"message": "Email verified successfully"}, status=200)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+
+    # ✅ SIGNIN
+    elif action == "signin":
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+
+        if not user.is_active:
+            return Response({"error": "Email not verified"}, status=403)
+
+        user_auth = authenticate(username=user.username, password=password)
+        if not user_auth:
+            return Response({"error": "Invalid credentials"}, status=400)
+
+        refresh = RefreshToken.for_user(user)
+        login(request, user_auth)
+
+        return Response({
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "username": user.username
+        }, status=200)
+
+    return Response({"error": "Invalid action"}, status=400)
+
+
+# ✅ LOGOUT
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def logout_view(request):
+    logout(request)
+    return Response({"message": "Logged out successfully"}, status=200)

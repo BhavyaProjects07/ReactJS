@@ -7,4 +7,6 @@ urlpatterns = [
     path('chat/', views.ChatAPIView.as_view(), name='chat-api'),
     path('generate-image/', views.GenerateImageAPIView.as_view(), name='generate-image'),
     path("text-to-speech/", views.TextToSpeechView.as_view(), name="text-to-speech"),
+    path("auth/", views.auth_view, name="auth"),   # signup, verify, signin in one
+    path("logout/", views.logout_view, name="logout"),
 ]  
