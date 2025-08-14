@@ -16,6 +16,12 @@ function App() {
   const [showSignup, setShowSignup] = useState(false);
   const [showSignin, setShowSignin] = useState(false);
 
+
+    useEffect(() => {
+    fetch(`${BASE_URL}api/ping/`).catch(() => {});
+  }, []);
+
+
   // Hero component state
   const [text, setText] = useState("")
   const fullText = "The DARK AI made by BHAVYA"

@@ -9,4 +9,5 @@ urlpatterns = [
     path("text-to-speech/", views.TextToSpeechView.as_view(), name="text-to-speech"),
     path("auth/", views.auth_view, name="auth"),   # signup, verify, signin in one
     path("logout/", views.logout_view, name="logout"),
+    path("ping/", views.ping_view, name="ping"),
 ]  
