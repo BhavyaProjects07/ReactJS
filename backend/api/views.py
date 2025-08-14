@@ -432,4 +432,4 @@ from rest_framework.response import Response
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def ping_view(request):
-    return Response({"status": "ok"}, status=200)
+    return Response({"status": "ok"})

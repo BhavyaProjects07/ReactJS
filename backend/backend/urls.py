@@ -5,7 +5,7 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
-
+from api import views
 
 # ✅ Google Login View Class
 class GoogleLogin(SocialLoginView):
@@ -22,7 +22,7 @@ urlpatterns = [
     # ✅ Your main API endpoints
     path('api/', include('api.urls')),
 
-  
+    path('api/ping/', views.ping_view),
 ]
 
 
