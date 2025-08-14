@@ -8,7 +8,7 @@ import Chat from "./pages/Chat.jsx"
 import Signup from "./pages/Signup.jsx";
 import Signin from "./pages/Signin.jsx";
 import { FaUserCircle } from "react-icons/fa"; // ⬅️ Add this import at the top
-
+const BASE_URL = import.meta.env.VITE_BASE_URL
 function App() {
   const [currentPage, setCurrentPage] = useState("home")
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
