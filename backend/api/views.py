@@ -10,12 +10,8 @@ logger = logging.getLogger(__name__)
 from decouple import config
 genai.configure(api_key=config("GOOGLE_API_KEY"))
 
-
 # Load the model
 model = genai.GenerativeModel('gemini-2.0-flash')
-
-
-import re
 
 custom_responses = {
     "creator": {
@@ -82,9 +78,6 @@ def detect_custom_response(user_message):
                 return data['response']
     return None
 
-
-
-
 def clean_gemini_response(text):
     if not isinstance(text, str):
         return text
@@ -100,10 +93,10 @@ def clean_gemini_response(text):
 
     return cleaned.strip()
 
-
 class ChatAPIView(APIView):
     def post(self, request):
         user_message = request.data.get('message')
+        is_code_mode = request.data.get('code_mode', False)  # ✅ NEW FIELD FROM FRONTEND
 
         if not user_message:
             return Response({"error": "Message is required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -114,18 +107,13 @@ class ChatAPIView(APIView):
             if custom_reply:
                 return Response({"bot_response": custom_reply}, status=status.HTTP_200_OK)
 
-            # Basic keyword detection for code intent
-            code_keywords = ["python", "javascript", "code", "program", "script", "function", "write a function", "generate code"]
-            is_code_request = any(keyword.lower() in user_message.lower() for keyword in code_keywords)
-
-            # Code generation or normal response
-            if is_code_request:
+            if is_code_mode:  # ✅ Force code mode
                 prompt = f"""
                 You are a coding assistant.
 
                 Please generate a COMPLETE code solution for the following request:
 
-                **Request: {user_message}**
+                Request: {user_message}
 
                 🚨 STRICT Instructions:
                 ✅ Return the entire code in ONE markdown block like ```python ... ```
@@ -138,26 +126,27 @@ class ChatAPIView(APIView):
                 """
             else:
                 prompt = f"""
-                    You are a helpful AI assistant. Format your responses cleanly and human-like.
+                You are Dark AI, an advanced assistant.
+                ⚡ Always respond in GitHub-flavored Markdown (GFM).
 
-                    Instructions:
-                    - Use bullet points (•) only for lists
-                    - Add a line break **after each bullet point** (important)
-                    - Bold all main titles in list items (e.g., • **Mindhunter**)
-                    - Add a **newline after title and emoji**, then write description below
-                    - No markdown formatting like ** or * or HTML symbols
-                    - Keep responses elegant and easy to read
+                Formatting rules:
+                - Use #, ##, ### for headings
+                - Use **bold** for emphasis
+                - Use - or 1. for lists
+                - Use > for blockquotes
+                - Use fenced code blocks ``` for code
+                - Add line breaks between sections
+                - Keep responses elegant, structured, and easy to scan
 
-                    Question: {user_message}
-"""
+                User Query:
+                {user_message}
+                """
 
 
             response = model.generate_content(prompt)
-
             ai_response = response.text if hasattr(response, 'text') else "I couldn't generate a response."
 
-            # If not code, clean the response
-            if not is_code_request:
+            if not is_code_mode:
                 ai_response = clean_gemini_response(ai_response)
 
             return Response({"bot_response": ai_response}, status=status.HTTP_200_OK)
@@ -166,15 +155,9 @@ class ChatAPIView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-
-
-
+# --- IMAGE GENERATION VIEW ---
 import os
 import mimetypes
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from google import genai
 from google.genai import types
 import cloudinary
@@ -187,13 +170,6 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDINARY_API_SECRET"),
     secure=True
 )
-
-def upload_to_cloudinary(file_name, data):
-    with open(file_name, "wb") as f:
-        f.write(data)
-    response = cloudinary.uploader.upload(file_name, folder="darkai/generated/")
-    os.remove(file_name)
-    return response['secure_url']
 
 class GenerateImageAPIView(APIView):
     def post(self, request):
@@ -224,21 +200,14 @@ class GenerateImageAPIView(APIView):
                 contents=contents,
                 config=config,
             ):
-                print("📥 Received chunk from Gemini")
-
                 candidate = chunk.candidates[0]
                 if not candidate or not candidate.content or not candidate.content.parts:
-                    print("⚠️ No candidate content/parts found.")
                     continue
 
                 parts = candidate.content.parts
-                print(f"✅ Parts received: {parts}")
-
                 inline_data = parts[0].inline_data if parts[0] else None
 
                 if inline_data and inline_data.data:
-                    print("🖼️ Inline image data found. Saving...")
-
                     file_extension = mimetypes.guess_extension(inline_data.mime_type)
                     file_name = f"generated_image_{file_index}{file_extension}"
                     file_index += 1
@@ -246,47 +215,35 @@ class GenerateImageAPIView(APIView):
                     with open(file_name, "wb") as f:
                         f.write(inline_data.data)
 
-                    print("✅ Image saved locally.")
-
                     response = cloudinary.uploader.upload(file_name, folder="darkai/generated/")
                     os.remove(file_name)
-                    print("☁️ Uploaded to Cloudinary:", response["secure_url"])
 
                     return Response({"file_name": response["secure_url"]}, status=200)
-
-                else:
-                    print("❌ No inline image data in parts.")
-
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
+# --- TEXT TO SPEECH VIEW ---
 from gtts import gTTS
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from rest_framework.views import APIView
-from rest_framework.response import Response
+import uuid
 from gtts.lang import tts_langs
-import os, uuid
-import cloudinary.uploader
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TextToSpeechView(APIView):
     def post(self, request):
         text = request.data.get("text")
-        lang = request.data.get("lang", "en")  # default to English
+        lang = request.data.get("lang", "en")
 
         if not text:
             return Response({"error": "No text provided"}, status=400)
 
-        # ✅ Validate language code
         supported_langs = tts_langs()
         if lang not in supported_langs:
             return Response({"error": f"Language '{lang}' not supported."}, status=400)
 
-        # ✅ Generate speech and save locally
         filename = f"{uuid.uuid4()}.mp3"
         filepath = os.path.join("temp", filename)
         os.makedirs("temp", exist_ok=True)
@@ -294,17 +251,15 @@ class TextToSpeechView(APIView):
         tts = gTTS(text=text, lang=lang)
         tts.save(filepath)
 
-        # ✅ Upload to Cloudinary
         try:
             response = cloudinary.uploader.upload(
                 filepath,
-                resource_type="video",   # Required for mp3 in Cloudinary
+                resource_type="video",
                 folder="darkai/tts/",
-                public_id=filename.split(".")[0],  # Use clean name
-                format="mp3",                      # 🔑 This ensures proper MIME type
+                public_id=filename.split(".")[0],
+                format="mp3",
                 overwrite=True
             )
-
             cloud_url = response["secure_url"]
         except Exception as e:
             return Response({"error": f"Cloudinary upload failed: {str(e)}"}, status=500)
@@ -314,23 +269,15 @@ class TextToSpeechView(APIView):
         return Response({"audio_url": cloud_url})
 
 
-
-
-
-
-# login/signup views
-
+# --- AUTH VIEWS (SIGNUP/LOGIN/LOGOUT) ---
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
 from django.core.mail import send_mail
 from rest_framework_simplejwt.tokens import RefreshToken
 import random
 
-# Temporary store for OTPs (in-memory, replace with DB/cache for production)
 otp_storage = {}
 
 def generate_otp():
@@ -339,9 +286,8 @@ def generate_otp():
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def auth_view(request):
-    action = request.data.get("action")  # "signup", "verify", "signin"
+    action = request.data.get("action")
 
-    # ✅ SIGNUP
     if action == "signup":
         username = request.data.get("username")
         email = request.data.get("email")
@@ -364,10 +310,8 @@ def auth_view(request):
             [email],
             fail_silently=False,
         )
-
         return Response({"message": "Signup successful. Verify with OTP."}, status=201)
 
-    # ✅ VERIFY OTP
     elif action == "verify":
         email = request.data.get("email")
         otp = request.data.get("otp")
@@ -384,7 +328,6 @@ def auth_view(request):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
 
-    # ✅ SIGNIN
     elif action == "signin":
         email = request.data.get("email")
         password = request.data.get("password")
@@ -412,8 +355,6 @@ def auth_view(request):
 
     return Response({"error": "Invalid action"}, status=400)
 
-
-# ✅ LOGOUT
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
@@ -421,14 +362,7 @@ def logout_view(request):
     return Response({"message": "Logged out successfully"}, status=200)
 
 
-
-
-# ping view to check server status
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-
+# --- PING VIEW ---
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def ping_view(request):
