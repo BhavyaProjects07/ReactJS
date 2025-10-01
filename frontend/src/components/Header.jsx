@@ -25,10 +25,11 @@ const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="relative">
-              <Zap className="w-8 h-8 text-purple-400 animate-pulse" />
-              <div className="absolute inset-0 w-8 h-8 bg-purple-400/20 rounded-full blur-md"></div>
-            </div>
+            <img
+                src="/logo.png"
+                alt="DarkCore Icon"
+                className="logo-icon"
+              />
             <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               Dark AI
             </span>
@@ -131,6 +132,16 @@ const Header = () => {
           </div>
         )}
       </div>
+
+
+      <style>{`.logo-icon {
+          width: 32px;
+          height: 32px;
+          object-fit: contain;
+        }
+          `}
+      </style>
+
     </header>
   )
 }

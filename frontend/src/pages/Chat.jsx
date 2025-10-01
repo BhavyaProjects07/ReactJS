@@ -22,7 +22,7 @@ const Chat = ({ onNavigate }) => {
     {
       id: 1,
       type: "bot",
-      content: "## 👋 Hello!\nI'm **Dark AI**, your advanced assistant.\n\nHow can I help you today?",
+      content: "## 👋 Hello!\nI'm **Dark AI**, [ You have to just wait for only 1-2mins only for 1st message request ]",
       timestamp: new Date(),
     },
   ])
@@ -43,7 +43,7 @@ const Chat = ({ onNavigate }) => {
     scrollToBottom()
     const timer = setTimeout(() => {
       setShowStartupNotice(false)
-    }, 20000)
+    }, 120000)
     return () => clearTimeout(timer)
   }, [])
 
@@ -167,7 +167,7 @@ const Chat = ({ onNavigate }) => {
         <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
           {showStartupNotice && (
             <div className="mb-4 p-3 rounded-xl bg-yellow-900/30 border border-yellow-600 text-yellow-300 text-sm text-center animate-pulse">
-              ⚠️ Server is waking up... Response might take a few seconds only for the first request.
+              ⚠️ Server is waking up... Response might take 1-2 mins only for the first msg request [Please stay on the chat until the reply came up].
             </div>
           )}
 
