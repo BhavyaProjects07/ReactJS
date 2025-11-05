@@ -11,7 +11,7 @@ from decouple import config
 genai.configure(api_key=config("GOOGLE_API_KEY"))
 
 # Load the model
-model = genai.GenerativeModel('gemini-2.0-flash')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 custom_responses = {
     "creator": {
@@ -179,7 +179,7 @@ class GenerateImageAPIView(APIView):
             return Response({"error": "Prompt is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+            client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
             model = "gemini-2.0-flash-preview-image-generation"
 
             contents = [

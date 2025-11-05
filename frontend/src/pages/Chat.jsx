@@ -16,6 +16,9 @@ import {
 import { Link } from "react-router-dom"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css"; // beautiful syntax theme
+
 
 const Chat = ({ onNavigate }) => {
   const [messages, setMessages] = useState([
@@ -171,139 +174,134 @@ const Chat = ({ onNavigate }) => {
             </div>
           )}
 
-          <div className="w-full max-w-4xl mx-auto">
+          <div className="w-full max-w-6xl mx-auto">
             {messages.map((message) => (
               <div
-                key={message.id}
-                className={`flex items-start space-x-2 sm:space-x-4 animate-fade-in-up ${
-                  message.type === "user"
-                    ? "flex-row-reverse space-x-reverse"
-                    : ""
-                }`}
-              >
-                <div className="flex-shrink-0">
-                  <div
-                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${
-                      message.type === "bot"
-                        ? "bg-gradient-to-r from-purple-600 to-blue-600"
-                        : "bg-gradient-to-r from-gray-600 to-gray-700"
-                    }`}
-                  >
-                    {message.type === "bot" ? (
-                      <Bot className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                    ) : (
-                      <User className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                    )}
-                  </div>
-                </div>
+  key={message.id}
+  className={`flex items-start space-x-2 sm:space-x-4 animate-fade-in-up ${
+    message.type === "user" ? "flex-row-reverse space-x-reverse" : ""
+  }`}
+>
+  {/* Avatar */}
+  <div className="flex-shrink-0">
+    <div
+      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-md ${
+        message.type === "bot"
+          ? "bg-gradient-to-r from-purple-600 to-blue-600"
+          : "bg-gradient-to-r from-gray-600 to-gray-700"
+      }`}
+    >
+      {message.type === "bot" ? (
+        <Bot className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+      ) : (
+        <User className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+      )}
+    </div>
+  </div>
 
-                {/* Message Content */}
-                <div
-                  className={`flex-1 max-w-[85%] sm:max-w-3xl ${
-                    message.type === "user" ? "text-right" : ""
-                  }`}
-                >
-                  <div
-                    className={`group relative p-3 sm:p-4 rounded-2xl ${
-                      message.type === "bot"
-                        ? "bg-gray-900/50 border border-gray-800 backdrop-blur-sm"
-                        : "bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30"
-                    }`}
-                  >
-                    {message.type === "bot" ? (
-                      <div className="prose prose-invert max-w-none">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          h1: ({ children }) => (
-                            <h1 className="text-4xl font-extrabold mt-10 mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
-                              {children}
-                            </h1>
-                          ),
-                          h2: ({ children }) => (
-                            <h2 className="text-3xl font-bold mt-8 mb-4 text-blue-300 border-b border-white/20 pb-2">
-                              {children}
-                            </h2>
-                          ),
-                          h3: ({ children }) => (
-                            <h3 className="text-2xl font-semibold mt-6 mb-3 text-indigo-300">
-                              {children}
-                            </h3>
-                          ),
-                          p: ({ children }) => (
-                            <p className="text-white/80 text-base leading-relaxed my-4 pl-1">
-                              {children}
-                            </p>
-                          ),
-                          ul: ({ children }) => (
-                            <ul className="list-disc pl-6 space-y-2 marker:text-purple-400">
-                              {children}
-                            </ul>
-                          ),
-                          ol: ({ children }) => (
-                            <ol className="list-decimal pl-6 space-y-2 marker:text-blue-400">
-                              {children}
-                            </ol>
-                          ),
-                          li: ({ children }) => (
-                            <li className="leading-relaxed text-white/90">
-                              {children}
-                            </li>
-                          ),
-                          blockquote: ({ children }) => (
-                            <blockquote className="bg-white/5 border-l-4 border-blue-400 pl-4 italic rounded-lg py-3 my-4 text-white/80">
-                              {children}
-                            </blockquote>
-                          ),
-                          strong: ({ children }) => (
-                            <strong className="text-yellow-300 font-semibold">
-                              {children}
-                            </strong>
-                          ),
-                          code: ({ inline, children }) =>
-                            inline ? (
-                              <code className="bg-gray-800 px-1.5 py-0.5 rounded text-pink-400 font-mono text-sm">
-                                {children}
-                              </code>
-                            ) : (
-                              <pre className="bg-gray-900 p-4 rounded-xl overflow-x-auto my-4">
-                                <code className="text-green-400 font-mono text-sm">{children}</code>
-                              </pre>
-                            ),
-                        }}
-                      >
-                        {message.content}
-                      </ReactMarkdown>
-                    </div>
+  {/* Message Content */}
+  <div
+    className={`flex-1 ${
+      message.type === "user" ? "text-right" : "text-left"
+    }`}
+  >
+    <div
+      className={`group relative py-2 sm:py-3 px-3 sm:px-5 rounded-xl transition-all duration-300 ${
+        message.type === "bot"
+          ? "bg-transparent border border-gray-800/50 hover:border-blue-600/30"
+          : "bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30"
+      }`}
+      style={{ maxWidth: "95%", marginLeft: message.type === "bot" ? "0" : "auto" }}
+    >
+      {message.type === "bot" ? (
+        <div className="prose prose-invert max-w-none leading-relaxed w-full text-left text-[1.05rem] sm:text-[1.1rem] tracking-wide">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeHighlight]}
+            components={{
+              h1: ({ children }) => (
+                <h1 className="text-4xl font-extrabold mt-8 mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
+                  {children}
+                </h1>
+              ),
+              h2: ({ children }) => (
+                <h2 className="text-3xl font-bold mt-6 mb-3 text-blue-300 border-b border-white/10 pb-2">
+                  {children}
+                </h2>
+              ),
+              h3: ({ children }) => (
+                <h3 className="text-2xl font-semibold mt-4 mb-2 text-indigo-300">
+                  {children}
+                </h3>
+              ),
+              p: ({ children }) => (
+                <p className="text-white/90 leading-relaxed my-3 whitespace-pre-line">
+                  {children}
+                </p>
+              ),
+              ul: ({ children }) => (
+                <ul className="list-disc pl-6 space-y-2 marker:text-purple-400">
+                  {children}
+                </ul>
+              ),
+              ol: ({ children }) => (
+                <ol className="list-decimal pl-6 space-y-2 marker:text-blue-400">
+                  {children}
+                </ol>
+              ),
+              li: ({ children }) => (
+                <li className="leading-relaxed text-white/90">{children}</li>
+              ),
+              blockquote: ({ children }) => (
+                <blockquote className="border-l-4 border-blue-400/60 pl-4 italic py-2 my-4 text-white/80 bg-white/5 rounded-lg">
+                  {children}
+                </blockquote>
+              ),
+              strong: ({ children }) => (
+                <strong className="text-yellow-300 font-semibold">{children}</strong>
+              ),
+              code: ({ inline, children }) =>
+                inline ? (
+                  <code className="bg-gray-800 px-1.5 py-0.5 rounded text-pink-400 font-mono text-sm">
+                    {children}
+                  </code>
+                ) : (
+                  <pre className="bg-gray-950/90 p-4 rounded-xl overflow-x-auto my-4">
+                    <code className="text-green-400 font-mono text-sm">{children}</code>
+                  </pre>
+                ),
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
+        </div>
+      ) : (
+        <p className="text-white text-lg leading-relaxed">{message.content}</p>
+      )}
 
-                    ) : (
-                      <p className="text-white">{message.content}</p>
-                    )}
+      <div className="flex items-center justify-between mt-3">
+        <span className="text-xs text-gray-500">{formatTime(message.timestamp)}</span>
+        {message.type === "bot" && (
+          <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <button
+              onClick={() => copyMessage(message.content)}
+              className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
+            >
+              <Copy className="w-4 h-4" />
+            </button>
+            <button className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-green-400 transition-colors">
+              <ThumbsUp className="w-4 h-4" />
+            </button>
+            <button className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 transition-colors">
+              <ThumbsDown className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
 
-                    <div className="flex items-center justify-between mt-2 sm:mt-3">
-                      <span className="text-xs text-gray-500">
-                        {formatTime(message.timestamp)}
-                      </span>
-                      {message.type === "bot" && (
-                        <div className="flex items-center space-x-1 sm:space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          <button
-                            onClick={() => copyMessage(message.content)}
-                            className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors duration-200"
-                          >
-                            <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                          <button className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-green-400 transition-colors duration-200">
-                            <ThumbsUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                          <button className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 transition-colors duration-200">
-                            <ThumbsDown className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
             ))}
 
             {isTyping && (
